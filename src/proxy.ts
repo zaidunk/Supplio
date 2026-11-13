@@ -37,7 +37,11 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (!user && !isPublic(pathname)) {
     if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
+      // Bentuk sama dengan galat route handler (lib/http.ts) agar klien menangani satu format.
+      return NextResponse.json(
+        { error: { code: "UNAUTHENTICATED", message: "Tidak terautentikasi" } },
+        { status: 401 },
+      );
     }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
