@@ -78,6 +78,8 @@ export async function cleanupBusiness(businessId: string) {
   const prisma = db();
   await prisma.goodsReceipt.deleteMany({ where: { purchaseOrder: { businessId } } });
   await prisma.purchaseOrder.deleteMany({ where: { businessId } });
+  // RecommendationItem → QuotationItem berstatus RESTRICT: hapus rekomendasi sebelum request (yang meng-cascade penawaran).
+  await prisma.procurementRecommendation.deleteMany({ where: { request: { businessId } } });
   await prisma.procurementRequest.deleteMany({ where: { businessId } });
   await prisma.business.deleteMany({ where: { id: businessId } });
 }
