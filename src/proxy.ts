@@ -9,7 +9,9 @@ import { NextResponse, type NextRequest } from "next/server";
 // Webhook Telegram & Inngest tidak memakai sesi owner (diamankan secret/signing key masing-masing).
 const PUBLIC_PATHS = ["/login", "/api/telegram/webhook", "/api/inngest"];
 
+// "/" adalah landing page publik (hanya tampilan statis, tanpa data).
 const isPublic = (pathname: string) =>
+  pathname === "/" ||
   PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
 export async function proxy(request: NextRequest) {
