@@ -1,6 +1,7 @@
 import { DeleteProductButton } from "@/components/inventory/delete-product-button";
 import { MovementForm } from "@/components/inventory/movement-form";
 import { ProductForm } from "@/components/inventory/product-form";
+import { RequestQuotePanel } from "@/components/inventory/request-quote-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -56,6 +57,19 @@ export default async function InventoryPage() {
         </CardHeader>
         <CardContent>
           <MovementForm products={rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit }))} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Minta penawaran manual</CardTitle>
+          <CardDescription>
+            Pilih barang yang ingin Anda tanyakan harganya ke supplier sekarang, tanpa menunggu reorder point. Jumlah bisa
+            diubah. Barang yang masih dalam PO tetap bisa dipilih, tetapi waspadai overbuy.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RequestQuotePanel rows={rows} />
         </CardContent>
       </Card>
 

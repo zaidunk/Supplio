@@ -25,12 +25,28 @@ export interface InventoryRow {
   reorderPoint: string | null;
   targetStock: string | null;
   requiredQuantity: string | null;
+  /**
+   * Usulan jumlah untuk permintaan penawaran manual: requiredQuantity bila > 0, selain itu kebutuhan
+   * `dailyConsumption × targetCoverageDays` (dibulatkan ke atas). Null bila belum bisa dihitung; owner mengisi sendiri.
+   */
+  suggestedQuantity: string | null;
   triggerRestock: boolean;
   configurationMissing: PlanningField[];
   stockoutRisk: boolean;
   daysOfCover: string | null;
   /** Barang ini sudah ada di proses sourcing aktif. */
   inActiveRequest: boolean;
+}
+
+function suggestManualQuantity(
+  required: Decimal | null,
+  p: { dailyConsumption: { toString(): string } | null; targetCoverageDays: number | null; quantityScale: number },
+): string | null {
+  if (required && required.gt(0)) return required.toString();
+  if (p.dailyConsumption === null || p.targetCoverageDays === null) return null;
+  const coverage = new Decimal(p.dailyConsumption.toString()).times(p.targetCoverageDays);
+  if (!coverage.gt(0)) return null;
+  return coverage.toDecimalPlaces(p.quantityScale, Decimal.ROUND_UP).toString();
 }
 
 /** Ringkasan inventaris + perhitungan restock; dipakai GET /api/products dan halaman Inventory. */
@@ -87,6 +103,7 @@ export async function getInventoryOverview(db: Db, businessId: string): Promise<
       reorderPoint: e.status === "OK" ? e.reorderPoint.toString() : null,
       targetStock: e.status === "OK" ? e.targetStock.toString() : null,
       requiredQuantity: e.status === "OK" ? e.requiredQuantity.toString() : null,
+      suggestedQuantity: suggestManualQuantity(e.status === "OK" ? e.requiredQuantity : null, p),
       triggerRestock: e.status === "OK" && e.triggerRestock,
       configurationMissing: e.status === "CONFIGURATION_REQUIRED" ? e.missing : [],
       stockoutRisk: risk.atRisk,

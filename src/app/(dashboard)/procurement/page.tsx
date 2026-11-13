@@ -17,7 +17,7 @@ export default async function ProcurementPage() {
       <div>
         <h1 className="text-2xl font-semibold">Procurement</h1>
         <p className="text-sm text-muted-foreground">
-          Request dibuat otomatis saat restock terdeteksi. Negosiasi Telegram dan rekomendasi menyusul di fase berikutnya.
+          Request dibuat otomatis saat restock terdeteksi, atau manual oleh owner dari halaman Inventory.
         </p>
       </div>
       <Card>
@@ -48,7 +48,10 @@ export default async function ProcurementPage() {
                 <TableRow key={r.id}>
                   <TableCell>{formatDateTime(r.createdAt)}</TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{STATUS_LABEL[r.status]}</Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge variant="secondary">{STATUS_LABEL[r.status]}</Badge>
+                      {r.triggerSource === "MANUAL" ? <Badge variant="outline">Manual</Badge> : null}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">{r.itemCount}</TableCell>
                   <TableCell className="text-right">{formatRupiah(r.restockBudget)}</TableCell>
