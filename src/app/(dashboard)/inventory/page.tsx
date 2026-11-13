@@ -42,10 +42,10 @@ export default async function InventoryPage() {
   const rows = await getInventoryOverview(prisma, business.id);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Inventory</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Inventory</h1>
+        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
           Restock dipicu otomatis ketika posisi stok (stok + barang dalam PO) mencapai reorder point.
         </p>
       </div>

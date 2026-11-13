@@ -13,10 +13,10 @@ export default async function ProcurementPage() {
   const requests = await listRequests(prisma, business.id);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Procurement</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Procurement</h1>
+        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
           Request dibuat otomatis saat restock terdeteksi, atau manual oleh owner dari halaman Inventory.
         </p>
       </div>
@@ -57,7 +57,7 @@ export default async function ProcurementPage() {
                   <TableCell className="text-right">{formatRupiah(r.restockBudget)}</TableCell>
                   <TableCell>{r.expiresAt ? formatDateTime(r.expiresAt) : "-"}</TableCell>
                   <TableCell>
-                    <Link href={`/procurement/${r.id}`} className="text-sm underline">
+                    <Link href={`/procurement/${r.id}`} className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800">
                       Detail
                     </Link>
                   </TableCell>

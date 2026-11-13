@@ -14,9 +14,9 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Pengaturan</h1>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Pengaturan</h1>
       </div>
 
       <Card>

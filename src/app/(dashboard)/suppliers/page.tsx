@@ -21,10 +21,10 @@ export default async function SuppliersPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Supplier</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Supplier</h1>
+        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
           Harga, MOQ, dan lead time di sini hanya referensi. Harga yang dipakai untuk rekomendasi berasal dari penawaran
           aktual supplier lewat Telegram.
         </p>

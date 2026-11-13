@@ -10,13 +10,40 @@ import { isSourcingActive } from "@/lib/procurement/lifecycle";
 import { listRequests } from "@/lib/procurement/queries";
 import { STATUS_LABEL } from "@/lib/ui/status";
 
-function Stat({ label, value, href }: { label: string; value: string | number; href: string }) {
+function Stat({
+  label,
+  value,
+  href,
+  featured = false,
+}: {
+  label: string;
+  value: string | number;
+  href: string;
+  featured?: boolean;
+}) {
   return (
-    <Link href={href}>
-      <Card className="h-full transition-colors hover:bg-muted/40">
-        <CardHeader>
-          <CardDescription>{label}</CardDescription>
-          <CardTitle className="text-3xl">{value}</CardTitle>
+    <Link
+      href={href}
+      className={featured ? "sm:col-span-2 lg:col-span-2" : undefined}
+    >
+      <Card
+        className={
+          featured
+            ? "h-full border-transparent bg-[image:var(--grad-blue)] text-white shadow-md transition-transform hover:-translate-y-0.5"
+            : "h-full transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm"
+        }
+      >
+        <CardHeader className="gap-2">
+          <CardTitle
+            className={
+              featured
+                ? "text-[clamp(2.5rem,5vw,3.5rem)] leading-none font-extrabold tracking-[-0.03em] tabular-nums"
+                : "text-2xl leading-none font-extrabold tracking-[-0.02em] tabular-nums xl:text-3xl"
+            }
+          >
+            {value}
+          </CardTitle>
+          <CardDescription className={featured ? "text-base text-blue-100" : "text-sm"}>{label}</CardDescription>
         </CardHeader>
       </Card>
     </Link>
@@ -39,11 +66,11 @@ export default async function DashboardPage() {
   const awaitingApproval = requests.filter((r) => r.status === "AWAITING_APPROVAL");
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+    <div className="flex flex-col gap-8">
+      <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Dashboard</h1>
 
       {awaitingApproval.length > 0 ? (
-        <Card className="border-primary">
+        <Card className="border-blue-300 bg-blue-50/60">
           <CardHeader>
             <CardTitle>Menunggu keputusan Anda</CardTitle>
             <CardDescription>
@@ -52,7 +79,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {awaitingApproval.map((r) => (
-              <Link key={r.id} href={`/procurement/${r.id}`} className="underline">
+              <Link key={r.id} href={`/procurement/${r.id}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
                 Tinjau rekomendasi ({r.itemCount} barang, dibuat {formatDateTime(r.createdAt)})
               </Link>
             ))}
@@ -61,16 +88,16 @@ export default async function DashboardPage() {
       ) : null}
 
       {settings.defaultRestockBudget <= 0 ? (
-        <Card className="border-destructive/50">
+        <Card className="border-danger/30 bg-danger-bg">
           <CardContent className="py-4 text-sm">
             <strong>Restock Budget belum diatur.</strong> Restock yang terdeteksi tidak bisa diproses sebelum budget
-            diisi. <Link href="/settings" className="underline">Atur di Pengaturan</Link>.
+            diisi. <Link href="/settings" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">Atur di Pengaturan</Link>.
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Barang perlu restock" value={needRestock.length} href="/inventory" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        <Stat featured label="Barang perlu restock" value={needRestock.length} href="/inventory" />
         <Stat label="Proses sourcing aktif" value={active.length} href="/procurement" />
         <Stat label="PO menunggu penerimaan" value={openOrders.length} href="/receiving" />
         <Stat label="Barang berisiko stockout" value={atRisk.length} href="/inventory" />
@@ -106,7 +133,7 @@ export default async function DashboardPage() {
                 <li key={r.id} className="flex items-center gap-3">
                   <Badge variant="secondary">{STATUS_LABEL[r.status]}</Badge>
                   <span>{r.itemCount} barang</span>
-                  <Link href={`/procurement/${r.id}`} className="underline">
+                  <Link href={`/procurement/${r.id}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
                     Detail
                   </Link>
                 </li>

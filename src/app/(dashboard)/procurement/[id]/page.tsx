@@ -27,13 +27,13 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <Link href="/procurement" className="text-sm text-muted-foreground underline">
+        <Link href="/procurement" className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">
           ← Semua request
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold">Procurement request</h1>
+          <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Procurement request</h1>
           <Badge variant="secondary">{STATUS_LABEL[request.status]}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -86,7 +86,7 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
         <Card className="border-amber-500/50">
           <CardContent className="py-4 text-sm">
             <strong>Menunggu supplier terhubung.</strong> Belum ada supplier yang menyuplai barang ini dan sudah terhubung ke
-            Telegram. Hubungkan supplier di <Link href="/suppliers" className="underline">halaman Supplier</Link>; permintaan
+            Telegram. Hubungkan supplier di <Link href="/suppliers" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">halaman Supplier</Link>; permintaan
             penawaran dikirim otomatis begitu ada yang terhubung.
           </CardContent>
         </Card>
@@ -249,7 +249,7 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
             <CardTitle>Purchase order</CardTitle>
             <CardDescription>
               Satu PO per supplier. Stok bertambah hanya saat barang diterima di halaman{" "}
-              <Link href="/receiving" className="underline">
+              <Link href="/receiving" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
                 Penerimaan
               </Link>
               .

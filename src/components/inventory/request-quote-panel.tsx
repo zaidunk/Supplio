@@ -175,7 +175,7 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
           {pending ? "Mengirim..." : `Minta penawaran (${selectedRows.length})`}
         </Button>
         {blockedBySourcing ? (
-          <Link href="/procurement" className="text-sm underline">
+          <Link href="/procurement" className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800">
             Lihat proses aktif
           </Link>
         ) : null}

@@ -16,10 +16,10 @@ export default async function ReceivingPage() {
   const history = all.filter((p) => !outstanding.includes(p));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Penerimaan barang</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Penerimaan barang</h1>
+        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
           Catat barang yang benar-benar diterima. Stok bertambah hanya sebesar jumlah yang Anda isi, dan tidak boleh melebihi sisa pesanan.
         </p>
       </div>
@@ -39,7 +39,7 @@ export default async function ReceivingPage() {
             </div>
             <CardDescription>
               {po.supplierName} · total {formatRupiah(po.totalCost)} ·{" "}
-              <Link href={`/procurement/${po.requestId}`} className="underline">
+              <Link href={`/procurement/${po.requestId}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
                 lihat request
               </Link>
             </CardDescription>
