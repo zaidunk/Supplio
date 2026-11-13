@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { dispatchTriggerOutcome } from "@/inngest/dispatch";
 import { requireBusinessForApi } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { getServerEnv } from "@/lib/env";
@@ -21,5 +22,6 @@ export const PUT = route(async (request: Request) => {
   const result = await updateBusinessSettings(prisma, business.id, input, {
     expiryHours: getServerEnv().PROCUREMENT_REQUEST_EXPIRY_HOURS,
   });
+  await dispatchTriggerOutcome(result.trigger, business.id);
   return NextResponse.json(result);
 });

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { dispatchTriggerOutcome } from "@/inngest/dispatch";
 import { requireBusinessForApi } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { getServerEnv } from "@/lib/env";
@@ -15,6 +16,7 @@ export const POST = route(async (request: Request) => {
     { businessId: business.id, ...input },
     { expiryHours: getServerEnv().PROCUREMENT_REQUEST_EXPIRY_HOURS },
   );
+  await dispatchTriggerOutcome(result.trigger, business.id);
   // 200 untuk replay idempotent, 201 untuk mutasi baru.
   return NextResponse.json(result, { status: result.duplicate ? 200 : 201 });
 });
