@@ -13,7 +13,7 @@ Supplio membantu **UMKM kuliner** mendeteksi kebutuhan restock, meminta penawara
 
 **Prinsip yang tidak boleh dilanggar:**
 
-1. Trigger restock dan proses permintaan penawaran **otomatis**; tidak ada persetujuan terpisah untuk mengaktifkannya.
+1. Trigger restock dan proses permintaan penawaran **otomatis**; tidak ada persetujuan terpisah untuk mengaktifkannya. Selain itu, pemilik boleh **meminta penawaran secara manual** untuk barang pilihannya tanpa menunggu ambang batas (§4.1); itu aksi pemilik sendiri, bukan gerbang persetujuan, dan tidak menggantikan Final Approval.
 2. AI dapat menanyakan harga, stok, MOQ, ongkir, lead time, serta melakukan **maksimal satu putaran counter-offer per supplier per procurement request**.
 3. AI **tidak boleh** menyetujui pesanan, menjanjikan pembayaran, atau membuat komitmen transaksi atas nama pemilik.
 4. Hanya pemilik yang dapat melakukan **Final Approval**; backend membuat/mengirim purchase order setelah approval terverifikasi.
@@ -98,6 +98,14 @@ triggerRestock    = inventoryPosition <= reorderPoint AND requiredQuantity > 0
 - Jika ada kebutuhan aktif yang sudah tercakup dalam procurement request atau PO, **jangan mengirim outreach ulang** untuk jumlah yang sama.
 - `requiredQuantity` dihitung ulang ketika request akan dibuat; simpan snapshot di `ProcurementRequestItem` untuk audit. `maxDeliveryDays` default sama dengan `plannedLeadTimeDays`, dapat disesuaikan pemilik **sebelum** outreach. Jika estimasi stok habis lebih cepat dari batas tersebut, tampilkan peringatan risiko stockout.
 - Restock bisa berisi beberapa barang: pada satu evaluasi inventaris, kumpulkan seluruh barang yang memenuhi trigger dalam **satu `ProcurementRequest`** menggunakan satu `restockBudget`.
+
+**Permintaan penawaran manual (owner):** dari halaman Inventory, pemilik dapat memilih satu, beberapa, atau semua barang yang perlu restock dan meminta penawaran **sekarang**, walau `triggerRestock` belum terpenuhi.
+
+- Jumlah per barang ditentukan pemilik; usulan awal adalah `requiredQuantity` bila > 0, selain itu `dailyConsumption * targetCoverageDays` (dibulatkan ke atas). Nilai yang dikonfirmasi disimpan sebagai snapshot `requiredQuantity` pada `ProcurementRequestItem`.
+- `maxDeliveryDays` default `plannedLeadTimeDays`; wajib diisi pemilik bila lead time belum diatur.
+- Aturan lain **tidak dilonggarkan**: `restockBudget` harus terisi, setiap barang punya supplier aktif, kuantitas > 0 dan sesuai presisi satuan, serta hanya satu proses sourcing aktif per bisnis. Berbeda dari jalur otomatis, bentrokan dengan sourcing aktif **ditolak (409 `ACTIVE_SOURCING_EXISTS`)**, bukan ditunda diam-diam, agar pemilik tahu.
+- Barang yang masih ada di PO incoming boleh dipilih dengan **peringatan risiko overbuy**; pemilik yang memutuskan.
+- Idempoten lewat `clientKey` per percobaan kirim. Request ditandai `triggerSource = MANUAL` (jalur otomatis `AUTO`) dan transisi awalnya berisi alasan "Diminta manual oleh owner" untuk audit. Setelah dibuat, alurnya identik dengan request otomatis (outreach Telegram, optimizer, Final Approval).
 - Batasi satu proses sourcing aktif per bisnis pada MVP. Jika ada trigger baru ketika proses berlangsung, tandai untuk evaluasi selanjutnya; jangan menambah item diam-diam ke negosiasi yang sudah berjalan.
 - Bila konfigurasi wajib (`dailyConsumption`, lead time, target coverage, budget, supplier) belum lengkap, tampilkan `CONFIGURATION_REQUIRED`, bukan memanggil AI.
 
@@ -199,7 +207,7 @@ Implementasikan Prisma schema dengan relasi dan constraint unik yang tepat; ini 
 | `InventoryMovement` | `id`, `productId`, `type` (`IN`/`OUT`/`ADJUSTMENT`), `quantity`, `note`, `createdAt`, `referenceId?` |
 | `Supplier` | `id`, `businessId`, `name`, `telegramChatId?`, `telegramUserId?`, `telegramVerifiedAt?`, `isActive` |
 | `SupplierProduct` | `supplierId`, `productId`, `referenceUnitPrice`, `minimumOrderQuantity`, `packSize`, `referenceAvailableQuantity?`, `referenceLeadTimeDays`, `referenceShippingFee?`, `isPrimary`, `updatedAt` |
-| `ProcurementRequest` | `id`, `businessId`, `restockBudget`, `status`, `aiSettingsVersion`, `createdAt`, `expiresAt?`, `approvedByOwnerAt?` |
+| `ProcurementRequest` | `id`, `businessId`, `restockBudget`, `status`, `triggerSource` (`AUTO`/`MANUAL`), `aiSettingsVersion`, `createdAt`, `expiresAt?`, `approvedByOwnerAt?` |
 | `ProcurementRequestItem` | `requestId`, `productId`, `requiredQuantity`, `maxDeliveryDays`, `allowedOverbuyQuantity` (snapshot) |
 | `NegotiationSession` | `id`, `requestId`, `supplierId`, `status`, `negotiationRound`, `lastActivityAt`, `expiresAt` |
 | `ConversationMessage` | `id`, `sessionId`, `direction`, `content`, `telegramMessageId?`, `telegramUpdateId?`, `createdAt` |
@@ -261,7 +269,7 @@ Setiap transisi status divalidasi server; event/job yang terlambat tidak boleh m
 | `PATCH` | `/api/suppliers/[id]` | Ubah supplier/produk/harga referensi. |
 | `POST` | `/api/suppliers/[id]/telegram-link` | Buat deep link onboarding sekali pakai. |
 | `POST` | `/api/telegram/webhook` | Verifikasi, persist, dan dispatch update Telegram. |
-| `GET` | `/api/procurement` | Daftar request dan status. |
+| `GET/POST` | `/api/procurement` | Daftar request dan status; `POST` = permintaan penawaran manual owner (`clientKey`, `items[]`: `productId`, `quantity`, `maxDeliveryDays?`). |
 | `GET` | `/api/procurement/[id]` | Detail context, sesi, quote, rekomendasi, PO. |
 | `POST` | `/api/procurement/[id]/approve` | Owner-only, validasi ulang dan buat PO. |
 | `POST` | `/api/procurement/[id]/reject` | Owner-only, batalkan rekomendasi/request. |
@@ -309,7 +317,7 @@ tests/
 ## 12. UI/UX minimum
 
 1. **Dashboard:** jumlah barang perlu restock, proses aktif, status penawaran, estimasi biaya, notifikasi keputusan owner.
-2. **Inventory:** daftar dan form produk, stock movement, konsumsi harian, `manualThreshold`/`reorderPoint`, `targetStock`/`requiredQuantity`.
+2. **Inventory:** daftar dan form produk, stock movement, konsumsi harian, `manualThreshold`/`reorderPoint`, `targetStock`/`requiredQuantity`, serta panel **Minta penawaran manual** (pilih barang, atur jumlah, peringatan overbuy/stockout).
 3. **Suppliers:** daftar per produk, supplier utama dan alternatif, data harga/MOQ/lead time, status Telegram terhubung, aksi generate link.
 4. **Procurement Detail:** timeline status, ringkasan permintaan, percakapan dan quotation per supplier, perbandingan penawaran, hasil optimizer, rincian total biaya, aksi Approve/Reject.
 5. **Settings:** `defaultRestockBudget` serta AI personalization (`communicationTone`, `negotiationStyle`, `customInstructions`) dengan penjelasan bahwa instruksi pengguna tidak mengubah kebijakan pembelian.
