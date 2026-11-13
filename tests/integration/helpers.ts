@@ -73,6 +73,30 @@ export async function linkSupplier(businessId: string, productId: string, name =
   return supplier;
 }
 
+/** Supplier aktif yang SUDAH terhubung ke Telegram (chatId unik global, jadi dibuat acak). */
+export async function createConnectedSupplier(
+  businessId: string,
+  o: { name: string; chatId: number; productIds?: string[]; isActive?: boolean },
+) {
+  const prisma = db();
+  const supplier = await prisma.supplier.create({
+    data: {
+      businessId,
+      name: o.name,
+      isActive: o.isActive ?? true,
+      telegramChatId: BigInt(o.chatId),
+      telegramUserId: BigInt(o.chatId),
+      telegramVerifiedAt: new Date(),
+    },
+  });
+  for (const productId of o.productIds ?? []) {
+    await prisma.supplierProduct.create({
+      data: { supplierId: supplier.id, productId, businessId, referenceUnitPrice: 10_000, referenceLeadTimeDays: 1 },
+    });
+  }
+  return supplier;
+}
+
 /** Hapus seluruh data bisnis uji dengan urutan yang menghormati FK RESTRICT. */
 export async function cleanupBusiness(businessId: string) {
   const prisma = db();
