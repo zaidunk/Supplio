@@ -14,10 +14,14 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
-    "test:integration": "cross-env RUN_DB_TESTS=1 vitest run tests/integration"
+    "test:integration": "cross-env RUN_DB_TESTS=1 vitest run tests/integration",
+    "telegram:webhook": "tsx scripts/telegram-webhook.ts",
+    "test:live": "cross-env RUN_DB_TESTS=1 RUN_LIVE_LLM=1 vitest run tests/integration/agent-live.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@langchain/core": "^1.4.0",
+    "@langchain/google-genai": "^2.3.6",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@supabase/ssr": "^0.12.7",
@@ -26,6 +30,7 @@
     "cn": "^0.5.2",
     "decimal.js": "^10.6.0",
     "dotenv": "^18.0.10",
+    "inngest": "^4.26.2",
     "javascript-lp-solver": "^1.0.3",
     "lucide-react": "^1.72.0",
     "next": "16.4.6",
