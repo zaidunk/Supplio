@@ -18,14 +18,20 @@ describe("parseServerEnv", () => {
     expect(env.SUPPLIER_RESPONSE_TIMEOUT_MINUTES).toBe(20);
   });
 
+  it("memakai gemini-2.5-flash bila GEMINI_MODEL kosong, dan menghormati override", () => {
+    expect(parseServerEnv({ ...base, GEMINI_MODEL: "" }).GEMINI_MODEL).toBe("gemini-2.5-flash");
+    expect(parseServerEnv({ ...base }).GEMINI_MODEL).toBe("gemini-2.5-flash");
+    expect(parseServerEnv({ ...base, GEMINI_MODEL: "gemini-3.5-flash" }).GEMINI_MODEL).toBe("gemini-3.5-flash");
+  });
+
   it("membaca override dari env", () => {
     const env = parseServerEnv({ ...base, PROCUREMENT_REQUEST_EXPIRY_HOURS: "48" });
     expect(env.PROCUREMENT_REQUEST_EXPIRY_HOURS).toBe(48);
   });
 
   it("menganggap string kosong pada variabel opsional sebagai tidak diisi", () => {
-    const env = parseServerEnv({ ...base, OPENAI_API_KEY: "", TELEGRAM_BOT_TOKEN: "  " });
-    expect(env.OPENAI_API_KEY).toBeUndefined();
+    const env = parseServerEnv({ ...base, GEMINI_API_KEY: "", TELEGRAM_BOT_TOKEN: "  " });
+    expect(env.GEMINI_API_KEY).toBeUndefined();
     expect(env.TELEGRAM_BOT_TOKEN).toBeUndefined();
   });
 

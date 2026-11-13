@@ -17,12 +17,15 @@ export const serverEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 
-  OPENAI_API_KEY: optionalString,
-  OPENAI_MODEL: optionalString,
+  GEMINI_API_KEY: optionalString,
+  /** Model Flash stabil; dapat diganti lewat env tanpa mengubah kode. */
+  GEMINI_MODEL: z.preprocess(blankToUndefined, z.string().min(1).default("gemini-2.5-flash")),
 
   TELEGRAM_BOT_TOKEN: optionalString,
   TELEGRAM_BOT_USERNAME: optionalString,
   TELEGRAM_WEBHOOK_SECRET: optionalString,
+  /** Hanya untuk uji e2e (server Telegram palsu); produksi memakai default. */
+  TELEGRAM_API_BASE_URL: z.preprocess(blankToUndefined, z.url().default("https://api.telegram.org")),
 
   INNGEST_EVENT_KEY: optionalString,
   INNGEST_SIGNING_KEY: optionalString,
