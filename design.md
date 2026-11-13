@@ -10,7 +10,7 @@
 | Aspek | Temuan (dari SUPPLIO.md, README.md, package.json, kode `src/`) |
 |---|---|
 | Produk | **Supplio — AI-Assisted Inventory & Procurement untuk UMKM.** Agen AI memantau stok, meminta penawaran dan bernegosiasi dengan **supplier manusia lewat Telegram**, lalu merekomendasikan kombinasi pembelian berbiaya terendah. **Pemilik tetap memberi Final Approval.** |
-| Industri / pengguna | UMKM kuliner. Persona utama: **pemilik UMKM** (satu-satunya yang login dan menyetujui). Persona sekunder: **supplier** (manusia, hanya berinteraksi di Telegram, tidak memakai web app). |
+| Industri / pengguna | UMKM. Persona utama: **pemilik UMKM** (satu-satunya yang login dan menyetujui). Persona sekunder: **supplier** (manusia, hanya berinteraksi di Telegram, tidak memakai web app). |
 | Fitur nyata | Dashboard, Inventory (produk, pergerakan stok, permintaan penawaran manual), Supplier (onboarding Telegram), Procurement (rekomendasi, Final Approval, PO), Penerimaan barang, Pengaturan (budget, gaya AI). |
 | Nilai inti | Transparan (status terlihat, bukan proses AI tersembunyi); aman (AI tak bisa menyetujui, batas keuangan ditegakkan kode); hemat (optimasi total harga item + ongkir). |
 | Bahasa & format | Antarmuka **Bahasa Indonesia**, mata uang **IDR**, zona waktu `Asia/Jakarta`. |

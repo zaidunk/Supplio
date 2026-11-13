@@ -1,6 +1,6 @@
 # Supplio
 
-AI-assisted inventory & procurement untuk UMKM kuliner. Sumber kebenaran produk: [SUPPLIO.md](SUPPLIO.md).
+AI-assisted inventory & procurement untuk UMKM. Sumber kebenaran produk: [SUPPLIO.md](SUPPLIO.md).
 
 ## Setup lokal
 

@@ -7,7 +7,7 @@
 
 ## 1. Tujuan dan batas produk
 
-Supplio membantu **UMKM kuliner** mendeteksi kebutuhan restock, meminta penawaran dan bernegosiasi dengan **supplier manusia melalui Telegram**, lalu merekomendasikan **kombinasi pembelian dengan total biaya terendah** yang memenuhi kebutuhan operasional dan batas keuangan. Pemilik UMKM tetap menjadi pihak yang **menyetujui pembelian akhir** (*human-in-the-loop*).
+Supplio membantu **UMKM** mendeteksi kebutuhan restock, meminta penawaran dan bernegosiasi dengan **supplier manusia melalui Telegram**, lalu merekomendasikan **kombinasi pembelian dengan total biaya terendah** yang memenuhi kebutuhan operasional dan batas keuangan. Pemilik UMKM tetap menjadi pihak yang **menyetujui pembelian akhir** (*human-in-the-loop*).
 
 **Target demo MVP:** satu UMKM dengan beberapa barang dan **tiga supplier manusia** yang telah terhubung ke Telegram Bot Supplio. Arsitektur data tetap memakai `businessId` untuk pemisahan data dan memungkinkan perluasan ke beberapa UMKM.
 
