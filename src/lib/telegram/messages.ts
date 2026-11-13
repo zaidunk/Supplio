@@ -1,4 +1,4 @@
-import { formatQty } from "@/lib/format";
+import { formatQty, formatRupiah } from "@/lib/format";
 
 /**
  * Teks pesan tetap (bukan LLM). Aturan SUPPLIO.md §1 dan §5 yang ditegakkan di sini:
@@ -44,5 +44,40 @@ export function buildOutreachMessage(p: { businessName: string; supplierName: st
     `Kami meminta penawaran untuk:\n${lines.join("\n")}\n\n` +
     `Mohon balas dengan: harga per satuan, stok tersedia, minimum order (MOQ), ongkos kirim, dan estimasi lead time.\n\n` +
     `Catatan: ini hanya permintaan penawaran, bukan pemesanan. Pesanan baru sah setelah pemilik menyetujui dan nomor PO dikirim.`
+  );
+}
+
+export interface OrderMessageItem {
+  productName: string;
+  quantity: string;
+  unit: string;
+  unitPrice: number;
+  lineCost: number;
+}
+
+/**
+ * Konfirmasi pemesanan resmi (SUPPLIO.md §4.3, §5). Dikirim HANYA setelah PO sah, yaitu setelah Final Approval pemilik.
+ * Berisi nomor PO. Teks tetap (bukan LLM): angka berasal dari PO di database, dan Restock Budget tidak disertakan.
+ */
+export function buildOrderMessage(p: {
+  businessName: string;
+  supplierName: string;
+  poNumber: string;
+  items: OrderMessageItem[];
+  shippingFee: number;
+  totalCost: number;
+  leadTimeDays: number | null;
+}): string {
+  const lines = p.items.map(
+    (i) => `• ${i.productName}: ${formatQty(i.quantity)} ${i.unit} × ${formatRupiah(i.unitPrice)} = ${formatRupiah(i.lineCost)}`,
+  );
+  return (
+    `PESANAN RESMI ${p.poNumber}\n\n` +
+    `Halo ${p.supplierName}, pemilik ${p.businessName} telah menyetujui pembelian berikut ` +
+    `(pesan ini dikirim oleh asisten AI Supplio atas persetujuan pemilik):\n${lines.join("\n")}\n\n` +
+    `Ongkos kirim: ${formatRupiah(p.shippingFee)}\n` +
+    `Total: ${formatRupiah(p.totalCost)}\n` +
+    (p.leadTimeDays !== null ? `Estimasi tiba: ${p.leadTimeDays} hari sesuai penawaran Anda.\n` : "") +
+    `\nMohon cantumkan nomor PO ${p.poNumber} pada pengiriman dan faktur.`
   );
 }

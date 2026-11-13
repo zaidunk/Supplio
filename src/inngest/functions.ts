@@ -12,6 +12,7 @@ import {
   getSourcingDeadline,
   startSourcing,
 } from "@/lib/procurement/sourcing";
+import { sendOrderConfirmations } from "@/lib/procurement/orders";
 import { markUpdateProcessed, processTelegramUpdate } from "@/lib/telegram/process-update";
 import { getTelegramClient } from "@/lib/telegram/server";
 import { inngest } from "./client";
@@ -165,6 +166,19 @@ export const handleSupplierMessageFn = inngest.createFunction(
   },
 );
 
+
+/**
+ * Setelah Final Approval (PO sudah sah): kirim konfirmasi pemesanan dengan nomor PO ke tiap supplier (§4.3).
+ * Idempoten per PO. Supplier yang tidak terjangkau tidak membatalkan PO; PO tetap CREATED dan owner dapat mengirim ulang.
+ */
+export const sendOrderConfirmationsFn = inngest.createFunction(
+  { id: "send-order-confirmations", retries: 5, triggers: [{ event: "procurement/approved" }] },
+  async ({ event, step }) => {
+    const { requestId, businessId } = requestEvent.parse(event.data);
+    return step.run("send", () => sendOrderConfirmations(prisma, getTelegramClient(), { businessId, requestId }));
+  },
+);
+
 /** Supplier baru terhubung: lanjutkan request DRAFT yang tadinya tidak punya supplier terjangkau. */
 export const resumeSourcingAfterConnectFn = inngest.createFunction(
   { id: "resume-sourcing-after-connect", triggers: [{ event: "supplier/telegram.connected" }] },
@@ -198,6 +212,7 @@ export const functions = [
   redispatchStaleFn,
   sourceRequestFn,
   handleSupplierMessageFn,
+  sendOrderConfirmationsFn,
   resumeSourcingAfterConnectFn,
   expireRequestsFn,
 ];

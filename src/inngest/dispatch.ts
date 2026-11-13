@@ -16,6 +16,14 @@ export async function dispatchEvents(events: (AppEvent & { id?: string })[]): Pr
 }
 
 /**
+ * Final Approval selesai dan PO sudah sah → kirim konfirmasi order. Id event = id request (terdedup). Mengembalikan
+ * false bila Inngest tidak terjangkau; pemanggil lalu mengirim langsung lewat jalur cadangan.
+ */
+export async function dispatchApproved(requestId: string, businessId: string): Promise<boolean> {
+  return dispatchEvents([{ id: `approved-${requestId}`, name: "procurement/approved", data: { requestId, businessId } }]);
+}
+
+/**
  * Request restock baru (otomatis, tanpa persetujuan) → mulai sourcing. Bila pengiriman gagal, request tetap DRAFT dan
  * dikirim ulang oleh fungsi `redispatch-stale`. Id event = id request, sehingga pengiriman ganda terdedup.
  */

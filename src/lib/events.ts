@@ -7,6 +7,8 @@ export type AppEvent =
       name: "supplier/message.received";
       data: { messageId: string; sessionId: string; supplierId: string; businessId: string; requestId: string };
     }
-  | { name: "supplier/telegram.connected"; data: { supplierId: string; businessId: string } };
+  | { name: "supplier/telegram.connected"; data: { supplierId: string; businessId: string } }
+  /** Final Approval selesai dan PO sudah sah: kirim konfirmasi order ke supplier (§4.3). */
+  | { name: "procurement/approved"; data: { requestId: string; businessId: string } };
 
 export type AppEventName = AppEvent["name"];
