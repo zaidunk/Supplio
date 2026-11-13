@@ -1,0 +1,502 @@
+// Supplio MVP — skema mengikuti SUPPLIO.md §2, §8, §9.
+//
+// Konvensi:
+//  - Uang  : Int (IDR utuh). Kuantitas/konversi: Decimal (tidak pernah Float).
+//  - Tenant: FK komposit (id, businessId) memastikan child selalu satu businessId dengan parent.
+//  - Aturan yang tidak bisa dinyatakan Prisma (unique parsial) ada di migrasi SQL
+//    `*_partial_unique_indexes`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum ProcurementStatus {
+  CONFIGURATION_REQUIRED
+  DRAFT
+  SOURCING
+  AWAITING_RESPONSES
+  OPTIMIZING
+  AWAITING_APPROVAL
+  APPROVED
+  ORDERED
+  PARTIALLY_RECEIVED
+  COMPLETED
+  NO_FEASIBLE_SOLUTION
+  CANCELLED
+  EXPIRED
+}
+
+enum NegotiationStatus {
+  PENDING
+  CONTACTED
+  AWAITING_REPLY
+  CLARIFYING
+  NEGOTIATING
+  CONFIRMED
+  DECLINED
+  TIMED_OUT
+}
+
+enum QuotationStatus {
+  DRAFT
+  NEEDS_CLARIFICATION
+  CONFIRMED
+  REJECTED
+  EXPIRED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageSender {
+  SUPPLIER
+  AI
+  SYSTEM
+}
+
+enum SolverStatus {
+  OPTIMAL
+  NO_FEASIBLE_SOLUTION
+  ERROR
+}
+
+enum PurchaseOrderStatus {
+  CREATED
+  SENT
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+// ───────────────────────── Tenant & settings ─────────────────────────
+
+model Business {
+  id                     String   @id @default(uuid())
+  /// Supabase Auth user id (auth.users.id) pemilik UMKM.
+  ownerUserId            String   @unique
+  name                   String
+  /// Disalin ke ProcurementRequest.restockBudget saat request dibuat.
+  defaultRestockBudget   Int      @default(0)
+  /// Batas tunggu balasan supplier (menit); default demo 20.
+  responseTimeoutMinutes Int      @default(20)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  aiSettings          AISettings[]
+  products            Product[]
+  suppliers           Supplier[]
+  supplierProducts    SupplierProduct[]
+  procurementRequests ProcurementRequest[]
+  requestItems        ProcurementRequestItem[]
+  negotiationSessions NegotiationSession[]
+  purchaseOrders      PurchaseOrder[]
+}
+
+/// Append-only: tiap perubahan = baris baru dengan version+1. Versi terbesar = aktif.
+/// Request/sesi menyimpan `aiSettingsVersion` sehingga perubahan tidak memengaruhi sesi berjalan.
+model AISettings {
+  id                 String   @id @default(uuid())
+  businessId         String
+  version            Int
+  communicationTone  String   @default("ramah dan sopan")
+  negotiationStyle   String   @default("santun, tegas pada harga")
+  customInstructions String   @default("")
+  createdAt          DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, version])
+}
+
+// ───────────────────────── Inventory ─────────────────────────
+
+model Product {
+  id                     String   @id @default(uuid())
+  businessId             String
+  name                   String
+  /// Satuan dasar (kg, liter, pcs, ...). Semua harga dinormalisasi ke satuan ini.
+  unit                   String
+  /// Jumlah desimal yang diizinkan untuk `unit` (0 = bilangan bulat). Dipakai membulatkan requiredQuantity.
+  quantityScale          Int      @default(0)
+  currentStock           Decimal  @default(0) @db.Decimal(14, 3)
+  lastPurchaseUnitPrice  Int?
+  dailyConsumption       Decimal? @db.Decimal(14, 3)
+  manualThreshold        Decimal  @default(0) @db.Decimal(14, 3)
+  plannedLeadTimeDays    Int?
+  safetyStock            Decimal  @default(0) @db.Decimal(14, 3)
+  targetCoverageDays     Int?
+  maximumUnitPrice       Int?
+  allowedOverbuyQuantity Decimal  @default(0) @db.Decimal(14, 3)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  business            Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  movements           InventoryMovement[]
+  supplierProducts    SupplierProduct[]
+  requestItems        ProcurementRequestItem[]
+  quotationItems      QuotationItem[]
+  recommendationItems RecommendationItem[]
+  purchaseOrderItems  PurchaseOrderItem[]
+  goodsReceiptItems   GoodsReceiptItem[]
+
+  @@unique([id, businessId])
+  @@unique([businessId, name])
+}
+
+model InventoryMovement {
+  id             String       @id @default(uuid())
+  productId      String
+  type           MovementType
+  /// IN/OUT: selalu positif. ADJUSTMENT: bertanda (+/-) terhadap stok.
+  quantity       Decimal      @db.Decimal(14, 3)
+  note           String?
+  /// Mis. id GoodsReceipt untuk movement hasil penerimaan.
+  referenceId    String?
+  idempotencyKey String?      @unique
+  createdAt      DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt])
+}
+
+// ───────────────────────── Suppliers ─────────────────────────
+
+model Supplier {
+  id                 String    @id @default(uuid())
+  businessId         String
+  name               String
+  telegramChatId     BigInt?   @unique
+  telegramUserId     BigInt?
+  telegramVerifiedAt DateTime?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  business                Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  products                SupplierProduct[]
+  telegramLinkTokens      TelegramLinkToken[]
+  negotiationSessions     NegotiationSession[]
+  messages                ConversationMessage[]
+  quotations              Quotation[]
+  recommendationItems     RecommendationItem[]
+  recommendationSuppliers RecommendationSupplier[]
+  purchaseOrders          PurchaseOrder[]
+
+  @@unique([id, businessId])
+}
+
+model SupplierProduct {
+  supplierId                 String
+  productId                  String
+  businessId                 String
+  referenceUnitPrice         Int
+  minimumOrderQuantity       Decimal  @default(1) @db.Decimal(14, 3)
+  /// Isi kemasan dalam satuan dasar; null = tidak ada kelipatan.
+  packSize                   Decimal? @db.Decimal(14, 3)
+  referenceAvailableQuantity Decimal? @db.Decimal(14, 3)
+  referenceLeadTimeDays      Int
+  referenceShippingFee       Int?
+  isPrimary                  Boolean  @default(false)
+  updatedAt                  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplierId, businessId], references: [id, businessId], onDelete: Cascade)
+  product  Product  @relation(fields: [productId, businessId], references: [id, businessId], onDelete: Cascade)
+
+  @@id([supplierId, productId])
+  @@index([productId])
+}
+
+/// Deep link onboarding: simpan hash token (bukan token mentah), sekali pakai, kedaluwarsa.
+model TelegramLinkToken {
+  id         String    @id @default(uuid())
+  supplierId String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([supplierId])
+}
+
+/// Dedup update Telegram: `update_id` dicatat sebelum diproses.
+model TelegramUpdate {
+  updateId    BigInt    @id
+  payload     Json
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+}
+
+// ───────────────────────── Procurement ─────────────────────────
+
+model ProcurementRequest {
+  id                String            @id @default(uuid())
+  businessId        String
+  /// Snapshot dari Business.defaultRestockBudget saat dibuat; integer IDR > 0.
+  restockBudget     Int
+  status            ProcurementStatus @default(DRAFT)
+  aiSettingsVersion Int
+  /// Kunci idempotensi trigger (mis. hash kebutuhan + minute-bucket) agar evaluasi ganda tidak membuat request ganda.
+  triggerKey        String            @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  expiresAt         DateTime?
+  approvedByOwnerAt DateTime?
+  /// Kunci idempotensi approval (dua klik tidak boleh menggandakan PO).
+  approvalKey       String?           @unique
+
+  business        Business                      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  items           ProcurementRequestItem[]
+  sessions        NegotiationSession[]
+  recommendations ProcurementRecommendation[]
+  purchaseOrders  PurchaseOrder[]
+  transitions     ProcurementStatusTransition[]
+
+  @@unique([id, businessId])
+  @@index([businessId, status])
+}
+
+model ProcurementStatusTransition {
+  id         String             @id @default(uuid())
+  requestId  String
+  fromStatus ProcurementStatus?
+  toStatus   ProcurementStatus
+  reason     String?
+  createdAt  DateTime           @default(now())
+
+  request ProcurementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
+}
+
+model ProcurementRequestItem {
+  id                     String  @id @default(uuid())
+  requestId              String
+  productId              String
+  businessId             String
+  /// Snapshot untuk audit.
+  requiredQuantity       Decimal @db.Decimal(14, 3)
+  maxDeliveryDays        Int
+  allowedOverbuyQuantity Decimal @default(0) @db.Decimal(14, 3)
+
+  business Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  request  ProcurementRequest @relation(fields: [requestId, businessId], references: [id, businessId], onDelete: Cascade)
+  product  Product            @relation(fields: [productId, businessId], references: [id, businessId], onDelete: Restrict)
+
+  @@unique([requestId, productId])
+}
+
+model NegotiationSession {
+  id                 String            @id @default(uuid())
+  requestId          String
+  supplierId         String
+  businessId         String
+  status             NegotiationStatus @default(PENDING)
+  /// Jumlah counter-offer terkirim; dibatasi kode maksimal 1 (§1.2).
+  negotiationRound   Int               @default(0)
+  /// Jumlah pesan klarifikasi terkirim (batas wajar ditegakkan kode).
+  clarificationCount Int               @default(0)
+  aiSettingsVersion  Int
+  lastActivityAt     DateTime          @default(now())
+  expiresAt          DateTime?
+  createdAt          DateTime          @default(now())
+
+  business   Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  request    ProcurementRequest    @relation(fields: [requestId, businessId], references: [id, businessId], onDelete: Cascade)
+  supplier   Supplier              @relation(fields: [supplierId, businessId], references: [id, businessId], onDelete: Restrict)
+  messages   ConversationMessage[]
+  quotations Quotation[]
+
+  @@unique([requestId, supplierId])
+  @@index([supplierId, status])
+}
+
+model ConversationMessage {
+  id                String           @id @default(uuid())
+  /// Null untuk pesan di luar sesi aktif (dicatat, tidak memicu proses pengadaan).
+  sessionId         String?
+  supplierId        String
+  direction         MessageDirection
+  sender            MessageSender
+  /// Teks mentah (audit); pesan supplier = data tidak tepercaya.
+  content           String
+  telegramMessageId BigInt?
+  telegramUpdateId  BigInt?          @unique
+  /// Idempotensi pesan keluar (satu pesan logis = satu kirim).
+  idempotencyKey    String?          @unique
+  createdAt         DateTime         @default(now())
+
+  session  NegotiationSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  supplier Supplier            @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([supplierId, createdAt])
+}
+
+model Quotation {
+  id            String          @id @default(uuid())
+  sessionId     String
+  supplierId    String
+  status        QuotationStatus @default(DRAFT)
+  shippingFee   Int?
+  leadTimeDays  Int?
+  validUntil    DateTime?
+  confirmedAt   DateTime?
+  /// Keluaran ekstraksi LLM mentah (audit); bukan sumber kebenaran.
+  rawExtraction Json?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  session  NegotiationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  supplier Supplier           @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items    QuotationItem[]
+
+  @@index([sessionId, status])
+}
+
+model QuotationItem {
+  id                   String   @id @default(uuid())
+  quotationId          String
+  productId            String
+  /// IDR per satuan dasar Product (sudah dinormalisasi dari kemasan).
+  quotedUnitPrice      Int
+  availableQuantity    Decimal? @db.Decimal(14, 3)
+  minimumOrderQuantity Decimal  @default(1) @db.Decimal(14, 3)
+  packSize             Decimal? @db.Decimal(14, 3)
+
+  quotation           Quotation            @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  product             Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  recommendationItems RecommendationItem[]
+
+  @@unique([quotationId, productId])
+}
+
+model ProcurementRecommendation {
+  id              String       @id @default(uuid())
+  requestId       String
+  /// Total item + ongkir, dihitung ulang backend secara independen.
+  totalCost       Int
+  remainingBudget Int
+  solverStatus    SolverStatus
+  explanation     String
+  createdAt       DateTime     @default(now())
+
+  request   ProcurementRequest       @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  items     RecommendationItem[]
+  suppliers RecommendationSupplier[]
+
+  @@index([requestId, createdAt])
+}
+
+/// Ongkir dihitung sekali per supplier terpilih.
+model RecommendationSupplier {
+  recommendationId String
+  supplierId       String
+  shippingFee      Int
+
+  recommendation ProcurementRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  supplier       Supplier                  @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+
+  @@id([recommendationId, supplierId])
+}
+
+model RecommendationItem {
+  id               String  @id @default(uuid())
+  recommendationId String
+  supplierId       String
+  productId        String
+  quantity         Decimal @db.Decimal(14, 3)
+  unitPrice        Int
+  quotationItemId  String
+
+  recommendation ProcurementRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  supplier       Supplier                  @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  product        Product                   @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quotationItem  QuotationItem             @relation(fields: [quotationItemId], references: [id], onDelete: Restrict)
+
+  @@unique([recommendationId, supplierId, productId])
+}
+
+// ───────────────────────── Purchase & receiving ─────────────────────────
+
+model PurchaseOrder {
+  id             String              @id @default(uuid())
+  /// Nomor tampilan, mis. PO-20261113-0001.
+  poNumber       String              @unique
+  requestId      String
+  supplierId     String
+  businessId     String
+  status         PurchaseOrderStatus @default(CREATED)
+  shippingFee    Int
+  totalCost      Int
+  /// Idempotensi pembuatan PO & pengiriman konfirmasi ke Telegram.
+  idempotencyKey String              @unique
+  sentAt         DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  business Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  request  ProcurementRequest  @relation(fields: [requestId, businessId], references: [id, businessId], onDelete: Restrict)
+  supplier Supplier            @relation(fields: [supplierId, businessId], references: [id, businessId], onDelete: Restrict)
+  items    PurchaseOrderItem[]
+  receipts GoodsReceipt[]
+
+  @@unique([requestId, supplierId])
+  @@index([businessId, status])
+}
+
+model PurchaseOrderItem {
+  id              String  @id @default(uuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Decimal @db.Decimal(14, 3)
+  unitPrice       Int
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([purchaseOrderId, productId])
+}
+
+model GoodsReceipt {
+  id              String   @id @default(uuid())
+  purchaseOrderId String
+  receivedAt      DateTime @default(now())
+  idempotencyKey  String   @unique
+
+  purchaseOrder PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  items         GoodsReceiptItem[]
+
+  @@index([purchaseOrderId])
+}
+
+model GoodsReceiptItem {
+  id               String  @id @default(uuid())
+  goodsReceiptId   String
+  productId        String
+  receivedQuantity Decimal @db.Decimal(14, 3)
+  note             String?
+
+  goodsReceipt GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([goodsReceiptId, productId])
+}
