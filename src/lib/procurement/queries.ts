@@ -2,6 +2,8 @@ import type { NegotiationStatus, ProcurementStatus } from "@/generated/prisma/cl
 import type { Db } from "@/lib/db/types";
 import { DomainError } from "@/lib/errors";
 import { estimateStockoutRisk } from "@/lib/inventory/restock";
+import { lineCost } from "./orders";
+import { listPurchaseOrders, type PurchaseOrderRow } from "./receiving";
 
 export interface RequestListRow {
   id: string;
@@ -71,14 +73,26 @@ export interface RequestDetail {
       items: { productName: string; unit: string; quotedUnitPrice: number; availableQuantity: string | null; minimumOrderQuantity: string; packSize: string | null }[];
     }[];
   }[];
-  /** Hasil optimasi terbaru (belum ada komitmen order). */
+  /** Hasil optimasi terbaru. Belum ada komitmen order sampai pemilik menyetujui. */
   recommendation: {
+    id: string;
     solverStatus: "OPTIMAL" | "NO_FEASIBLE_SOLUTION" | "ERROR";
     totalCost: number;
     remainingBudget: number;
     explanation: string;
     createdAt: string;
+    /** Rincian per supplier terpilih: barang, harga, ongkir (sekali per supplier), dan total. */
+    suppliers: {
+      supplierId: string;
+      supplierName: string;
+      shippingFee: number;
+      itemsCost: number;
+      total: number;
+      items: { productName: string; unit: string; quantity: string; unitPrice: number; lineCost: number }[];
+    }[];
   } | null;
+  /** PO yang lahir dari Final Approval. */
+  purchaseOrders: PurchaseOrderRow[];
 }
 
 export async function getRequestDetail(db: Db, businessId: string, requestId: string): Promise<RequestDetail> {
@@ -98,7 +112,14 @@ export async function getRequestDetail(db: Db, businessId: string, requestId: st
           },
         },
       },
-      recommendations: { orderBy: { createdAt: "desc" }, take: 1 },
+      recommendations: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        include: {
+          suppliers: { include: { supplier: { select: { name: true } } } },
+          items: { include: { product: { select: { name: true, unit: true } } } },
+        },
+      },
     },
   });
   if (!r) throw new DomainError("REQUEST_NOT_FOUND", "Procurement request tidak ditemukan.", 404);
@@ -165,12 +186,30 @@ export async function getRequestDetail(db: Db, businessId: string, requestId: st
     })),
     recommendation: r.recommendations[0]
       ? {
+          id: r.recommendations[0].id,
           solverStatus: r.recommendations[0].solverStatus,
           totalCost: r.recommendations[0].totalCost,
           remainingBudget: r.recommendations[0].remainingBudget,
           explanation: r.recommendations[0].explanation,
           createdAt: r.recommendations[0].createdAt.toISOString(),
+          suppliers: r.recommendations[0].suppliers
+            .map((s) => {
+              const items = r.recommendations[0].items
+                .filter((i) => i.supplierId === s.supplierId)
+                .map((i) => ({
+                  productName: i.product.name,
+                  unit: i.product.unit,
+                  quantity: i.quantity.toString(),
+                  unitPrice: i.unitPrice,
+                  lineCost: lineCost(i.unitPrice, i.quantity),
+                }))
+                .sort((a, b) => a.productName.localeCompare(b.productName));
+              const itemsCost = items.reduce((sum, i) => sum + i.lineCost, 0);
+              return { supplierId: s.supplierId, supplierName: s.supplier.name, shippingFee: s.shippingFee, itemsCost, total: itemsCost + s.shippingFee, items };
+            })
+            .sort((a, b) => a.supplierName.localeCompare(b.supplierName)),
         }
       : null,
+    purchaseOrders: await listPurchaseOrders(db, businessId, { requestId }),
   };
 }

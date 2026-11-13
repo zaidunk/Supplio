@@ -28,6 +28,14 @@ export const SESSION_STATUS_LABEL: Record<NegotiationStatus, string> = {
   TIMED_OUT: "Tidak membalas / tidak terjangkau",
 };
 
+export const PO_STATUS_LABEL: Record<"CREATED" | "SENT" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED", string> = {
+  CREATED: "Dibuat (konfirmasi belum terkirim)",
+  SENT: "Terkirim ke supplier",
+  PARTIALLY_RECEIVED: "Diterima sebagian",
+  RECEIVED: "Diterima penuh",
+  CANCELLED: "Dibatalkan",
+};
+
 export const QUOTATION_STATUS_LABEL: Record<"DRAFT" | "NEEDS_CLARIFICATION" | "CONFIRMED" | "REJECTED" | "EXPIRED", string> = {
   DRAFT: "Draf",
   NEEDS_CLARIFICATION: "Perlu klarifikasi (belum dipakai)",

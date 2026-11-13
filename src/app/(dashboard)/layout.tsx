@@ -8,6 +8,7 @@ const NAV = [
   { href: "/inventory", label: "Inventory" },
   { href: "/suppliers", label: "Supplier" },
   { href: "/procurement", label: "Procurement" },
+  { href: "/receiving", label: "Penerimaan" },
   { href: "/settings", label: "Pengaturan" },
 ];
 

@@ -3,7 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
-import { formatRupiah } from "@/lib/format";
+import { formatDateTime, formatRupiah } from "@/lib/format";
+import { listPurchaseOrders } from "@/lib/procurement/receiving";
 import { getInventoryOverview } from "@/lib/inventory/overview";
 import { isSourcingActive } from "@/lib/procurement/lifecycle";
 import { listRequests } from "@/lib/procurement/queries";
@@ -24,9 +25,10 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 
 export default async function DashboardPage() {
   const business = await requireBusiness();
-  const [rows, requests, settings] = await Promise.all([
+  const [rows, requests, openOrders, settings] = await Promise.all([
     getInventoryOverview(prisma, business.id),
     listRequests(prisma, business.id),
+    listPurchaseOrders(prisma, business.id, { outstandingOnly: true }),
     prisma.business.findUniqueOrThrow({ where: { id: business.id }, select: { defaultRestockBudget: true } }),
   ]);
 
@@ -34,10 +36,29 @@ export default async function DashboardPage() {
   const incomplete = rows.filter((r) => r.configurationMissing.length > 0);
   const atRisk = rows.filter((r) => r.stockoutRisk);
   const active = requests.filter((r) => isSourcingActive(r.status));
+  const awaitingApproval = requests.filter((r) => r.status === "AWAITING_APPROVAL");
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
+
+      {awaitingApproval.length > 0 ? (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle>Menunggu keputusan Anda</CardTitle>
+            <CardDescription>
+              Rekomendasi pembelian sudah siap. Tidak ada pesanan sebelum Anda menyetujuinya.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            {awaitingApproval.map((r) => (
+              <Link key={r.id} href={`/procurement/${r.id}`} className="underline">
+                Tinjau rekomendasi ({r.itemCount} barang, dibuat {formatDateTime(r.createdAt)})
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {settings.defaultRestockBudget <= 0 ? (
         <Card className="border-destructive/50">
@@ -48,9 +69,10 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Stat label="Barang perlu restock" value={needRestock.length} href="/inventory" />
         <Stat label="Proses sourcing aktif" value={active.length} href="/procurement" />
+        <Stat label="PO menunggu penerimaan" value={openOrders.length} href="/receiving" />
         <Stat label="Barang berisiko stockout" value={atRisk.length} href="/inventory" />
         <Stat label="Restock Budget default" value={formatRupiah(settings.defaultRestockBudget)} href="/settings" />
       </div>

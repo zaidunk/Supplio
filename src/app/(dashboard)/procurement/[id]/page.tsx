@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ApprovalPanel } from "@/components/procurement/approval-panel";
+import { ResendConfirmationButton } from "@/components/procurement/resend-confirmation-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,7 +11,7 @@ import { DomainError } from "@/lib/errors";
 import { formatDateTime, formatQty, formatRupiah } from "@/lib/format";
 import { getRequestDetail } from "@/lib/procurement/queries";
 import { idSchema } from "@/lib/validation/common";
-import { QUOTATION_STATUS_LABEL, SESSION_STATUS_LABEL, STATUS_LABEL } from "@/lib/ui/status";
+import { PO_STATUS_LABEL, QUOTATION_STATUS_LABEL, SESSION_STATUS_LABEL, STATUS_LABEL } from "@/lib/ui/status";
 
 export default async function ProcurementDetailPage(props: PageProps<"/procurement/[id]">) {
   const business = await requireBusiness();
@@ -169,20 +171,112 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
               </Badge>
             </div>
             <CardDescription>
-              Belum ada komitmen order. Persetujuan akhir ada pada Anda (menyusul di fase berikutnya).
+              {request.status === "AWAITING_APPROVAL"
+                ? "Belum ada komitmen order. Pembelian baru sah setelah Anda menyetujuinya."
+                : request.purchaseOrders.length > 0
+                  ? "Rekomendasi ini sudah disetujui dan menjadi purchase order di bawah."
+                  : "Tidak ada pesanan yang dibuat dari rekomendasi ini."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             {request.recommendation.solverStatus === "OPTIMAL" ? (
-              <p className="mb-3 text-sm">
-                Total {formatRupiah(request.recommendation.totalCost)} · sisa budget {formatRupiah(request.recommendation.remainingBudget)}
-              </p>
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Barang</TableHead>
+                        <TableHead className="text-right">Jumlah</TableHead>
+                        <TableHead className="text-right">Harga satuan</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {request.recommendation.suppliers.flatMap((s) => [
+                        ...s.items.map((i, idx) => (
+                          <TableRow key={`${s.supplierId}-${i.productName}`}>
+                            <TableCell className="font-medium">{idx === 0 ? s.supplierName : ""}</TableCell>
+                            <TableCell>{i.productName}</TableCell>
+                            <TableCell className="text-right">
+                              {formatQty(i.quantity)} {i.unit}
+                            </TableCell>
+                            <TableCell className="text-right">{formatRupiah(i.unitPrice)}</TableCell>
+                            <TableCell className="text-right">{formatRupiah(i.lineCost)}</TableCell>
+                          </TableRow>
+                        )),
+                        <TableRow key={`${s.supplierId}-ongkir`} className="text-muted-foreground">
+                          <TableCell />
+                          <TableCell colSpan={3}>Ongkir {s.supplierName} (dihitung sekali)</TableCell>
+                          <TableCell className="text-right">{formatRupiah(s.shippingFee)}</TableCell>
+                        </TableRow>,
+                      ])}
+                      <TableRow className="font-semibold">
+                        <TableCell colSpan={4}>Total</TableCell>
+                        <TableCell className="text-right">{formatRupiah(request.recommendation.totalCost)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+                <p className="text-sm">
+                  Restock Budget {formatRupiah(request.restockBudget)} · sisa {formatRupiah(request.recommendation.remainingBudget)}
+                </p>
+              </>
             ) : null}
-            <ul className="flex flex-col gap-1.5 text-sm">
+
+            <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
               {request.recommendation.explanation.split("\n").map((line, i) => (
                 <li key={i}>{line}</li>
               ))}
             </ul>
+
+            {request.status === "AWAITING_APPROVAL" && request.recommendation.solverStatus === "OPTIMAL" ? (
+              <ApprovalPanel
+                key={request.recommendation.id}
+                requestId={request.id}
+                recommendationId={request.recommendation.id}
+                totalCost={request.recommendation.totalCost}
+                supplierCount={request.recommendation.suppliers.length}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {request.purchaseOrders.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Purchase order</CardTitle>
+            <CardDescription>
+              Satu PO per supplier. Stok bertambah hanya saat barang diterima di halaman{" "}
+              <Link href="/receiving" className="underline">
+                Penerimaan
+              </Link>
+              .
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {request.purchaseOrders.map((po) => (
+              <div key={po.id} className="flex flex-wrap items-start justify-between gap-3 rounded-md border p-3 text-sm">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{po.poNumber}</span>
+                    <Badge variant={po.status === "RECEIVED" ? "default" : "secondary"}>{PO_STATUS_LABEL[po.status]}</Badge>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {po.supplierName} · total {formatRupiah(po.totalCost)} (ongkir {formatRupiah(po.shippingFee)})
+                  </p>
+                  <ul className="mt-1">
+                    {po.items.map((i) => (
+                      <li key={i.productId}>
+                        {i.productName}: dipesan {formatQty(i.ordered)} · diterima {formatQty(i.received)} · sisa {formatQty(i.outstanding)} {i.unit}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {po.status === "CREATED" && !po.sentAt ? <ResendConfirmationButton purchaseOrderId={po.id} /> : null}
+              </div>
+            ))}
           </CardContent>
         </Card>
       ) : null}
