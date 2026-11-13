@@ -78,7 +78,7 @@ export function ReceiptForm({ purchaseOrderId, items }: { purchaseOrderId: strin
                 onChange={(e) => setValues((v) => ({ ...v, [i.productId]: e.target.value }))}
               />
               <Button type="button" variant="outline" size="sm" onClick={() => setValues((v) => ({ ...v, [i.productId]: i.outstanding }))}>
-                Semua
+                Terima semua
               </Button>
             </div>
           </label>

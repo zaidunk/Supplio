@@ -18,15 +18,15 @@ export default async function ReceivingPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Penerimaan barang</h1>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Penerimaan</h1>
         <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Catat barang yang benar-benar diterima. Stok bertambah hanya sebesar jumlah yang Anda isi, dan tidak boleh melebihi sisa pesanan.
+          Catat barang yang benar-benar diterima. Stok bertambah sesuai jumlah yang Anda isi, maksimal sebesar sisa pesanan.
         </p>
       </div>
 
       {outstanding.length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">Tidak ada PO yang menunggu penerimaan.</CardContent>
+          <CardContent className="py-6 text-sm text-muted-foreground">Tidak ada purchase order yang menunggu penerimaan. PO baru muncul di sini setelah Anda menyetujui pembelian.</CardContent>
         </Card>
       ) : null}
 
@@ -40,7 +40,7 @@ export default async function ReceivingPage() {
             <CardDescription>
               {po.supplierName} · total {formatRupiah(po.totalCost)} ·{" "}
               <Link href={`/procurement/${po.requestId}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                lihat request
+                lihat procurement request
               </Link>
             </CardDescription>
           </CardHeader>
@@ -61,8 +61,8 @@ export default async function ReceivingPage() {
                     <TableRow key={i.productId}>
                       <TableCell className="font-medium">{i.productName}</TableCell>
                       <TableCell className="text-right">{formatQty(i.ordered)} {i.unit}</TableCell>
-                      <TableCell className="text-right">{formatQty(i.received)}</TableCell>
-                      <TableCell className="text-right">{formatQty(i.outstanding)}</TableCell>
+                      <TableCell className="text-right">{formatQty(i.received)} {i.unit}</TableCell>
+                      <TableCell className="text-right">{formatQty(i.outstanding)} {i.unit}</TableCell>
                       <TableCell className="text-right">{formatRupiah(i.unitPrice)}</TableCell>
                     </TableRow>
                   ))}
@@ -89,13 +89,13 @@ export default async function ReceivingPage() {
       {history.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Riwayat PO</CardTitle>
+            <CardTitle>Riwayat purchase order</CardTitle>
           </CardHeader>
           <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>PO</TableHead>
+                  <TableHead>Nomor PO</TableHead>
                   <TableHead>Supplier</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Total</TableHead>

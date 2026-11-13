@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-sans);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -160,6 +160,13 @@
   html {
     @apply font-sans;
   }
+  /* Bobot paling tebal adalah medium (500). */
+  b,
+  strong,
+  th,
+  summary {
+    font-weight: 500;
+  }
   h1,
   h2,
   h3 {
@@ -168,6 +175,10 @@
   :focus-visible {
     outline: 2px solid var(--blue-700);
     outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--pink-300);
+    color: var(--blue-950);
   }
 }
 

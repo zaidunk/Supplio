@@ -21,7 +21,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
             className={cn(
               "inline-flex h-10 items-center rounded-xl px-3.5 text-sm font-medium whitespace-nowrap transition-colors",
               active
-                ? "bg-blue-50 font-semibold text-blue-700"
+                ? "bg-blue-50 font-medium text-blue-700"
                 : "text-muted-foreground hover:bg-blue-50/60 hover:text-foreground",
             )}
           >

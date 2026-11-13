@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { signIn } from "./actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  invalid: "Email atau kata sandi belum valid.",
-  credentials: "Email atau kata sandi salah.",
+  invalid: "Format email belum benar atau kata sandi kosong. Periksa isian Anda, lalu coba lagi.",
+  credentials: "Email atau kata sandi tidak cocok. Periksa kembali, lalu coba masuk lagi.",
 };
 
 export default async function LoginPage({
@@ -22,7 +22,7 @@ export default async function LoginPage({
     <main className="grid flex-1 lg:grid-cols-[7fr_5fr]">
       <section className="relative hidden overflow-clip bg-[image:var(--grad-wash)] lg:flex lg:flex-col lg:justify-center lg:gap-8 lg:px-16">
         <Image src="/brand/icon.svg" alt="" width={96} height={92} priority />
-        <h1 className="max-w-[14ch] text-[clamp(2.5rem,4.5vw,4.5rem)] leading-[1.02] font-extrabold tracking-[-0.035em] text-blue-700">
+        <h1 className="max-w-[14ch] text-[clamp(2.5rem,4.5vw,4.5rem)] leading-[1.02] font-medium tracking-[-0.035em] text-blue-700">
           Restock lebih <span className="text-pink-500">terkendali</span>
         </h1>
         <p className="max-w-[44ch] text-lg text-muted-foreground">
@@ -35,7 +35,7 @@ export default async function LoginPage({
           <CardHeader>
             <Image src="/brand/icon.svg" alt="" width={48} height={46} className="mb-2 lg:hidden" priority />
             <CardTitle className="text-2xl">Masuk ke Supplio</CardTitle>
-            <CardDescription>Khusus pemilik UMKM.</CardDescription>
+            <CardDescription>Gunakan akun pemilik UMKM.</CardDescription>
           </CardHeader>
           <CardContent>
             <form action={signIn} className="flex flex-col gap-5">

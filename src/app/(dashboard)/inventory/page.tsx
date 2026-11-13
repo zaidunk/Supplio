@@ -12,9 +12,9 @@ import { getInventoryOverview, type InventoryRow } from "@/lib/inventory/overvie
 import type { PlanningField } from "@/lib/inventory/restock";
 
 const MISSING_LABEL: Record<PlanningField, string> = {
-  dailyConsumption: "konsumsi harian",
-  plannedLeadTimeDays: "lead time",
-  targetCoverageDays: "target cakupan",
+  dailyConsumption: "Daily Consumption",
+  plannedLeadTimeDays: "Planned Lead Time",
+  targetCoverageDays: "Target Coverage",
 };
 
 function StatusBadges({ row }: { row: InventoryRow }) {
@@ -32,7 +32,7 @@ function StatusBadges({ row }: { row: InventoryRow }) {
       {row.triggerRestock && row.activeSupplierCount === 0 ? (
         <Badge variant="destructive">Belum ada supplier aktif</Badge>
       ) : null}
-      {row.stockoutRisk ? <Badge variant="destructive">Risiko stockout (~{formatQty(row.daysOfCover)} hari)</Badge> : null}
+      {row.stockoutRisk ? <Badge variant="destructive">Risiko stockout (stok cukup ~{formatQty(row.daysOfCover)} hari)</Badge> : null}
     </div>
   );
 }
@@ -44,16 +44,19 @@ export default async function InventoryPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Inventory</h1>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Inventory</h1>
         <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Restock dipicu otomatis ketika posisi stok (stok + barang dalam PO) mencapai reorder point.
+          Restock dimulai otomatis saat Inventory Position (Current Stock + Incoming Quantity) mencapai Reorder Point.
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Catat mutasi stok</CardTitle>
-          <CardDescription>Setiap mutasi memicu evaluasi restock. Penerimaan barang dari PO dicatat di fase berikutnya.</CardDescription>
+          <CardDescription>
+            Catat barang keluar, masuk, atau penyesuaian. Setiap catatan memicu pengecekan restock. Barang dari purchase
+            order dicatat di halaman Penerimaan.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <MovementForm products={rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit }))} />
@@ -64,8 +67,8 @@ export default async function InventoryPage() {
         <CardHeader>
           <CardTitle>Minta penawaran manual</CardTitle>
           <CardDescription>
-            Pilih barang yang ingin Anda tanyakan harganya ke supplier sekarang, tanpa menunggu reorder point. Jumlah bisa
-            diubah. Barang yang masih dalam PO tetap bisa dipilih, tetapi waspadai overbuy.
+            Pilih barang yang ingin ditanyakan harganya ke supplier sekarang, tanpa menunggu Reorder Point. Jumlah bisa
+            diubah. Barang yang masih dalam purchase order tetap bisa dipilih, tetapi berisiko kelebihan beli.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,12 +85,12 @@ export default async function InventoryPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Produk</TableHead>
-                <TableHead className="text-right">Stok</TableHead>
-                <TableHead className="text-right">Dalam PO</TableHead>
-                <TableHead className="text-right">Posisi</TableHead>
-                <TableHead className="text-right">Reorder point</TableHead>
-                <TableHead className="text-right">Target stok</TableHead>
-                <TableHead className="text-right">Dibutuhkan</TableHead>
+                <TableHead className="text-right">Current Stock</TableHead>
+                <TableHead className="text-right">Incoming Quantity</TableHead>
+                <TableHead className="text-right">Inventory Position</TableHead>
+                <TableHead className="text-right">Reorder Point</TableHead>
+                <TableHead className="text-right">Target Stock</TableHead>
+                <TableHead className="text-right">Required Quantity</TableHead>
                 <TableHead className="text-right">Supplier aktif</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead />
@@ -97,7 +100,7 @@ export default async function InventoryPage() {
               {rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center text-muted-foreground">
-                    Belum ada produk.
+                    Belum ada produk. Tambahkan produk pertama di bagian “Tambah produk” di bawah.
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -139,7 +142,9 @@ export default async function InventoryPage() {
         <Card>
           <CardHeader>
             <CardTitle>Ubah konfigurasi produk</CardTitle>
-            <CardDescription>Perubahan konfigurasi juga memicu evaluasi restock. Stok hanya berubah lewat mutasi.</CardDescription>
+            <CardDescription>
+              Perubahan di sini memicu pengecekan restock. Stok tidak bisa diubah di sini; gunakan “Catat mutasi stok”.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {rows.map((r) => (

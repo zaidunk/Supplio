@@ -33,7 +33,7 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
           ← Semua request
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Procurement request</h1>
+          <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Procurement request</h1>
           <Badge variant="secondary">{STATUS_LABEL[request.status]}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -211,7 +211,7 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
                           <TableCell className="text-right">{formatRupiah(s.shippingFee)}</TableCell>
                         </TableRow>,
                       ])}
-                      <TableRow className="font-semibold">
+                      <TableRow className="font-medium">
                         <TableCell colSpan={4}>Total</TableCell>
                         <TableCell className="text-right">{formatRupiah(request.recommendation.totalCost)}</TableCell>
                       </TableRow>

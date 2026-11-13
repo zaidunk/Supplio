@@ -114,10 +114,10 @@ export function SupplierForm({ products, supplierId }: { products: ProductOption
           <Field label="Harga referensi per satuan dasar (Rp)">
             <Input type="number" min={1} value={r.referenceUnitPrice} onChange={(e) => update(r.key, { referenceUnitPrice: e.target.value })} required />
           </Field>
-          <Field label="MOQ">
+          <Field label="MOQ" hint="Jumlah pesanan minimum">
             <Input inputMode="decimal" value={r.minimumOrderQuantity} onChange={(e) => update(r.key, { minimumOrderQuantity: e.target.value })} />
           </Field>
-          <Field label="Isi kemasan (kelipatan)" hint="Kosong bila tidak ada">
+          <Field label="Isi kemasan (kelipatan)" hint="Kosongkan jika dijual per satuan">
             <Input inputMode="decimal" value={r.packSize} onChange={(e) => update(r.key, { packSize: e.target.value })} />
           </Field>
           <Field label="Stok referensi">
@@ -135,7 +135,7 @@ export function SupplierForm({ products, supplierId }: { products: ProductOption
               Supplier utama
             </label>
             <Button type="button" variant="outline" size="sm" onClick={() => setRows((rs) => rs.filter((x) => x.key !== r.key))}>
-              Hapus baris
+              Hapus produk ini
             </Button>
           </div>
         </div>

@@ -37,8 +37,8 @@ function Stat({
           <CardTitle
             className={
               featured
-                ? "text-[clamp(2.5rem,5vw,3.5rem)] leading-none font-extrabold tracking-[-0.03em] tabular-nums"
-                : "text-2xl leading-none font-extrabold tracking-[-0.02em] tabular-nums xl:text-3xl"
+                ? "text-[clamp(2.5rem,5vw,3.5rem)] leading-none font-medium tracking-[-0.03em] tabular-nums"
+                : "text-2xl leading-none font-medium tracking-[-0.02em] tabular-nums xl:text-3xl"
             }
           >
             {value}
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Dashboard</h1>
+      <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Dashboard</h1>
 
       {awaitingApproval.length > 0 ? (
         <Card className="border-blue-300 bg-blue-50/60">
@@ -90,16 +90,16 @@ export default async function DashboardPage() {
       {settings.defaultRestockBudget <= 0 ? (
         <Card className="border-danger/30 bg-danger-bg">
           <CardContent className="py-4 text-sm">
-            <strong>Restock Budget belum diatur.</strong> Restock yang terdeteksi tidak bisa diproses sebelum budget
-            diisi. <Link href="/settings" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">Atur di Pengaturan</Link>.
+            <strong>Restock Budget belum diatur.</strong> Restock yang terdeteksi baru bisa diproses setelah budget
+            diisi. <Link href="/settings" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">Atur Restock Budget</Link>
           </CardContent>
         </Card>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
         <Stat featured label="Barang perlu restock" value={needRestock.length} href="/inventory" />
-        <Stat label="Proses sourcing aktif" value={active.length} href="/procurement" />
-        <Stat label="PO menunggu penerimaan" value={openOrders.length} href="/receiving" />
+        <Stat label="Procurement request aktif" value={active.length} href="/procurement" />
+        <Stat label="Purchase order menunggu penerimaan" value={openOrders.length} href="/receiving" />
         <Stat label="Barang berisiko stockout" value={atRisk.length} href="/inventory" />
         <Stat label="Restock Budget default" value={formatRupiah(settings.defaultRestockBudget)} href="/settings" />
       </div>
@@ -108,7 +108,9 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Konfigurasi belum lengkap</CardTitle>
-            <CardDescription>Barang berikut tidak bisa dievaluasi untuk restock.</CardDescription>
+            <CardDescription>
+              Restock barang ini belum bisa dihitung. Lengkapi datanya di Inventory.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {incomplete.map((r) => (
@@ -122,11 +124,13 @@ export default async function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Request terbaru</CardTitle>
+          <CardTitle>Procurement request terbaru</CardTitle>
         </CardHeader>
         <CardContent>
           {requests.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Belum ada procurement request.</p>
+            <p className="text-sm text-muted-foreground">
+              Belum ada procurement request. Request dibuat otomatis saat restock terdeteksi.
+            </p>
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
               {requests.slice(0, 5).map((r) => (
@@ -134,7 +138,7 @@ export default async function DashboardPage() {
                   <Badge variant="secondary">{STATUS_LABEL[r.status]}</Badge>
                   <span>{r.itemCount} barang</span>
                   <Link href={`/procurement/${r.id}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                    Detail
+                    Lihat detail
                   </Link>
                 </li>
               ))}

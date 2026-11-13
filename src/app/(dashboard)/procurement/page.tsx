@@ -15,14 +15,15 @@ export default async function ProcurementPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Procurement</h1>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Procurement</h1>
         <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Request dibuat otomatis saat restock terdeteksi, atau manual oleh owner dari halaman Inventory.
+          Pantau permintaan penawaran, negosiasi supplier, dan rekomendasi pembelian. Request dibuat otomatis saat
+          restock terdeteksi, atau manual dari halaman Inventory.
         </p>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Daftar request</CardTitle>
+          <CardTitle>Procurement request</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <Table>
@@ -32,7 +33,7 @@ export default async function ProcurementPage() {
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Barang</TableHead>
                 <TableHead className="text-right">Restock Budget</TableHead>
-                <TableHead>Kedaluwarsa</TableHead>
+                <TableHead>Berlaku sampai</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -40,7 +41,8 @@ export default async function ProcurementPage() {
               {requests.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    Belum ada procurement request.
+                    Belum ada procurement request. Request pertama dibuat otomatis saat restock terdeteksi, atau minta
+                    penawaran manual dari Inventory.
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -58,7 +60,7 @@ export default async function ProcurementPage() {
                   <TableCell>{r.expiresAt ? formatDateTime(r.expiresAt) : "-"}</TableCell>
                   <TableCell>
                     <Link href={`/procurement/${r.id}`} className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                      Detail
+                      Lihat detail
                     </Link>
                   </TableCell>
                 </TableRow>

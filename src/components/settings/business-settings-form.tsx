@@ -36,17 +36,17 @@ export function BusinessSettingsForm(props: { defaultRestockBudget: number; resp
     <form onSubmit={onSubmit} className="grid max-w-xl gap-4">
       <Field
         label="Restock Budget default (Rp)"
-        hint="Batas total satu procurement request (semua barang + ongkir). Disalin sebagai snapshot saat request dibuat. 0 = belum diatur."
+        hint="Batas total satu procurement request, termasuk ongkir. Disalin ke setiap request baru; request yang sudah berjalan tidak berubah. Isi 0 jika belum diatur; restock belum bisa diproses."
       >
         <Input name="defaultRestockBudget" type="number" min={0} defaultValue={props.defaultRestockBudget} required />
       </Field>
-      <Field label="Batas tunggu balasan supplier (menit)">
+      <Field label="Batas tunggu balasan supplier (menit)" hint="Setelah batas ini, supplier dianggap tidak membalas">
         <Input name="responseTimeoutMinutes" type="number" min={1} max={1440} defaultValue={props.responseTimeoutMinutes} required />
       </Field>
       <FormMessage error={error} info={info} />
       <div>
         <Button type="submit" disabled={pending}>
-          Simpan
+          Simpan pengaturan
         </Button>
       </div>
     </form>

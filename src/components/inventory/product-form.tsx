@@ -62,11 +62,11 @@ export function ProductForm({ product }: Props) {
   const d = product;
   return (
     <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <Field label="Nama">
+      <Field label="Nama produk">
         <Input name="name" defaultValue={d?.name} required maxLength={120} />
       </Field>
       {editing ? (
-        <Field label="Satuan" hint="Tetap; tidak bisa diubah">
+        <Field label="Satuan" hint="Tidak bisa diubah setelah produk dibuat">
           <Input value={`${d!.unit} (${d!.quantityScale} desimal)`} disabled readOnly />
         </Field>
       ) : (
@@ -74,7 +74,7 @@ export function ProductForm({ product }: Props) {
           <Field label="Satuan dasar" hint="mis. kg, liter, pcs">
             <Input name="unit" required maxLength={20} />
           </Field>
-          <Field label="Desimal diizinkan" hint="0 = bilangan bulat">
+          <Field label="Angka desimal" hint="0 untuk bilangan bulat, maksimal 3">
             <Input name="quantityScale" type="number" min={0} max={3} defaultValue={0} />
           </Field>
           <Field label="Stok awal">
@@ -82,28 +82,28 @@ export function ProductForm({ product }: Props) {
           </Field>
         </>
       )}
-      <Field label="Konsumsi harian" hint="Wajib agar restock dihitung">
+      <Field label="Daily Consumption (per hari)" hint="Wajib. Rata-rata pemakaian per hari, dalam satuan produk">
         <Input name="dailyConsumption" inputMode="decimal" defaultValue={d?.dailyConsumption ?? ""} />
       </Field>
-      <Field label="Batas minimum manual (Manual Threshold)">
+      <Field label="Manual Threshold" hint="Batas stok minimum versi Anda. Isi 0 jika tidak dipakai">
         <Input name="manualThreshold" inputMode="decimal" defaultValue={d?.manualThreshold ?? "0"} />
       </Field>
-      <Field label="Lead time rencana (hari)" hint="Wajib">
+      <Field label="Planned Lead Time (hari)" hint="Wajib. Perkiraan waktu dari pesan sampai barang tiba">
         <Input name="plannedLeadTimeDays" type="number" min={0} max={365} defaultValue={d?.plannedLeadTimeDays ?? ""} />
       </Field>
-      <Field label="Stok pengaman (Safety Stock)">
+      <Field label="Safety Stock" hint="Cadangan stok yang Anda tetapkan. Default 0">
         <Input name="safetyStock" inputMode="decimal" defaultValue={d?.safetyStock ?? "0"} />
       </Field>
-      <Field label="Target cakupan (hari)" hint="Wajib">
+      <Field label="Target Coverage (hari)" hint="Wajib. Hari pemakaian yang ingin dicakup setelah lead time">
         <Input name="targetCoverageDays" type="number" min={0} max={365} defaultValue={d?.targetCoverageDays ?? ""} />
       </Field>
-      <Field label="Harga maksimum per satuan (Rp)" hint="Opsional; di atas ini penawaran ditolak">
+      <Field label="Maximum Unit Price (Rp)" hint="Opsional. Penawaran di atas harga ini tidak dipakai">
         <Input name="maximumUnitPrice" type="number" min={1} defaultValue={d?.maximumUnitPrice ?? ""} />
       </Field>
-      <Field label="Kelebihan beli diizinkan" hint="Default 0">
+      <Field label="Kelebihan beli diizinkan" hint="Jumlah di atas kebutuhan yang masih boleh dibeli. Default 0">
         <Input name="allowedOverbuyQuantity" inputMode="decimal" defaultValue={d?.allowedOverbuyQuantity ?? "0"} />
       </Field>
-      <Field label="Harga beli terakhir (Rp)" hint="Referensi saja">
+      <Field label="Harga beli terakhir (Rp)" hint="Opsional, hanya sebagai referensi">
         <Input name="lastPurchaseUnitPrice" type="number" min={1} defaultValue={d?.lastPurchaseUnitPrice ?? ""} />
       </Field>
       <div className="flex flex-col justify-end gap-2 sm:col-span-2 lg:col-span-4">

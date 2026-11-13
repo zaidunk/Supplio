@@ -91,7 +91,7 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
     }
   }
 
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">Belum ada produk.</p>;
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">Belum ada produk. Tambahkan produk di bagian “Tambah produk” di bawah.</p>;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -128,7 +128,7 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
                     {r.triggerRestock ? <Badge>Perlu restock</Badge> : null}
                     {r.inActiveRequest ? <Badge variant="secondary">Sedang diproses</Badge> : null}
                     {hasIncoming ? (
-                      <Badge variant="outline">Peringatan: {formatQty(r.incomingQuantity)} {r.unit} masih dalam PO, risiko overbuy</Badge>
+                      <Badge variant="outline">{formatQty(r.incomingQuantity)} {r.unit} masih dalam PO; berisiko kelebihan beli</Badge>
                     ) : null}
                     {r.stockoutRisk ? <Badge variant="destructive">Risiko stockout (~{formatQty(r.daysOfCover)} hari)</Badge> : null}
                   </span>
@@ -147,7 +147,7 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
                     />
                   </label>
                   <label className="flex flex-col gap-1 text-xs font-medium">
-                    Maks. tiba (hari)
+                    Batas tiba (hari)
                     <Input
                       className="w-24"
                       inputMode="numeric"
@@ -165,14 +165,14 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
 
       {selectedRows.some((r) => r.inActiveRequest) ? (
         <p className="text-sm text-muted-foreground">
-          Ada barang pilihan yang sedang diproses. Hanya satu proses sourcing boleh aktif; permintaan akan ditolak sampai
-          proses itu selesai atau dibatalkan.
+          Sebagian barang yang dipilih sedang diproses. Hanya satu proses sourcing yang boleh aktif, jadi permintaan baru
+          ditolak sampai proses itu selesai atau dibatalkan.
         </p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending || selectedRows.length === 0}>
-          {pending ? "Mengirim..." : `Minta penawaran (${selectedRows.length})`}
+          {pending ? "Membuat permintaan…" : `Minta penawaran (${selectedRows.length})`}
         </Button>
         {blockedBySourcing ? (
           <Link href="/procurement" className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800">

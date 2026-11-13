@@ -23,16 +23,18 @@ export default async function SuppliersPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-extrabold tracking-[-0.03em] text-blue-700">Supplier</h1>
+        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Supplier</h1>
         <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Harga, MOQ, dan lead time di sini hanya referensi. Harga yang dipakai untuk rekomendasi berasal dari penawaran
-          aktual supplier lewat Telegram.
+          Harga, MOQ, dan lead time di sini hanya referensi. Harga rekomendasi berasal dari Quotation aktual supplier
+          lewat Telegram.
         </p>
       </div>
 
       {suppliers.length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">Belum ada supplier.</CardContent>
+          <CardContent className="py-6 text-sm text-muted-foreground">
+            Belum ada supplier. Tambahkan supplier pertama di bawah untuk mulai meminta penawaran.
+          </CardContent>
         </Card>
       ) : null}
 
@@ -53,8 +55,8 @@ export default async function SuppliersPage() {
             </div>
             <CardDescription>
               {s.telegramConnected
-                ? "Supplier ini sudah bisa dihubungi oleh bot Supplio."
-                : "Bot tidak bisa memulai chat lebih dulu: supplier harus membuka tautan onboarding dan menyetujui koneksi."}
+                ? "Supplio bisa menghubungi supplier ini lewat Telegram."
+                : "Supplio tidak bisa memulai chat lebih dulu. Kirim tautan onboarding ke supplier; supplier perlu membukanya dan menyetujui koneksi."}
             </CardDescription>
             <TelegramLinkButton supplierId={s.id} connected={s.telegramConnected} />
           </CardHeader>
@@ -64,12 +66,12 @@ export default async function SuppliersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Produk</TableHead>
-                    <TableHead className="text-right">Harga ref.</TableHead>
+                    <TableHead className="text-right">Harga referensi</TableHead>
                     <TableHead className="text-right">MOQ</TableHead>
-                    <TableHead className="text-right">Kemasan</TableHead>
-                    <TableHead className="text-right">Stok ref.</TableHead>
+                    <TableHead className="text-right">Isi kemasan</TableHead>
+                    <TableHead className="text-right">Stok referensi</TableHead>
                     <TableHead className="text-right">Lead time</TableHead>
-                    <TableHead className="text-right">Ongkir ref.</TableHead>
+                    <TableHead className="text-right">Ongkir referensi</TableHead>
                     <TableHead>Peran</TableHead>
                     <TableHead />
                   </TableRow>
@@ -78,7 +80,7 @@ export default async function SuppliersPage() {
                   {s.products.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center text-muted-foreground">
-                        Belum menyuplai produk apa pun.
+                        Belum ada produk. Tambahkan lewat “Tambah atau ubah produk supplier” di bawah.
                       </TableCell>
                     </TableRow>
                   ) : null}
@@ -107,7 +109,7 @@ export default async function SuppliersPage() {
               </Table>
             </div>
             <details className="rounded-md border p-3">
-              <summary className="cursor-pointer text-sm font-medium">Tambah / ubah produk yang disuplai</summary>
+              <summary className="cursor-pointer text-sm font-medium">Tambah atau ubah produk supplier</summary>
               <div className="pt-4">
                 <SupplierForm products={products} supplierId={s.id} />
               </div>

@@ -11,7 +11,7 @@ export function DeleteProductButton({ id, name }: { id: string; name: string }) 
   const [error, setError] = useState<string | null>(null);
 
   async function onClick() {
-    if (!window.confirm(`Hapus produk "${name}"? Riwayat stoknya ikut terhapus.`)) return;
+    if (!window.confirm(`Hapus produk "${name}"? Riwayat stoknya ikut terhapus dan tidak bisa dikembalikan.`)) return;
     setError(null);
     try {
       await apiRequest(`/api/products/${id}`, "DELETE");
@@ -23,7 +23,7 @@ export function DeleteProductButton({ id, name }: { id: string; name: string }) 
 
   return (
     <div className="flex flex-col gap-1">
-      <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={pending}>
+      <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={pending} aria-label={`Hapus produk ${name}`}>
         Hapus
       </Button>
       {error ? (

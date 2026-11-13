@@ -62,17 +62,17 @@ export function MovementForm({ products }: { products: ProductOption[] }) {
           ))}
         </NativeSelect>
       </Field>
-      <Field label="Jenis">
+      <Field label="Jenis mutasi">
         <NativeSelect value={type} onChange={(e) => setType(e.target.value as typeof type)}>
-          <option value="OUT">Keluar (OUT)</option>
-          <option value="IN">Masuk (IN)</option>
-          <option value="ADJUSTMENT">Penyesuaian (+/-)</option>
+          <option value="OUT">Barang keluar</option>
+          <option value="IN">Barang masuk</option>
+          <option value="ADJUSTMENT">Penyesuaian stok (+/-)</option>
         </NativeSelect>
       </Field>
-      <Field label="Jumlah" hint={type === "ADJUSTMENT" ? "Boleh negatif, mis. -2.5" : undefined}>
+      <Field label="Jumlah" hint={type === "ADJUSTMENT" ? "Boleh negatif, mis. -2,5" : undefined}>
         <Input name="quantity" inputMode="decimal" required />
       </Field>
-      <Field label="Catatan">
+      <Field label="Catatan (opsional)">
         <Input name="note" maxLength={300} />
       </Field>
       <div className="flex items-end">

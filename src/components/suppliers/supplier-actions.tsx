@@ -50,7 +50,7 @@ export function RemoveProductButton({ supplierId, productId }: { supplierId: str
         disabled={pending}
         onClick={() => run(() => apiRequest(`/api/suppliers/${supplierId}`, "PATCH", { removeProductIds: [productId] }))}
       >
-        Lepas
+        Lepas dari supplier
       </Button>
       {error ? <p role="alert" className="text-xs text-destructive">{error}</p> : null}
     </div>
