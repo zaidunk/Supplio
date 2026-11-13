@@ -1,5 +1,6 @@
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { RemoveProductButton, ToggleActiveButton } from "@/components/suppliers/supplier-actions";
+import { TelegramLinkButton } from "@/components/suppliers/telegram-link-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -50,9 +51,12 @@ export default async function SuppliersPage() {
               </div>
               <ToggleActiveButton supplierId={s.id} isActive={s.isActive} />
             </div>
-            {!s.telegramConnected ? (
-              <CardDescription>Tautan onboarding Telegram dibuat pada fase integrasi Telegram.</CardDescription>
-            ) : null}
+            <CardDescription>
+              {s.telegramConnected
+                ? "Supplier ini sudah bisa dihubungi oleh bot Supplio."
+                : "Bot tidak bisa memulai chat lebih dulu: supplier harus membuka tautan onboarding dan menyetujui koneksi."}
+            </CardDescription>
+            <TelegramLinkButton supplierId={s.id} connected={s.telegramConnected} />
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="overflow-x-auto">

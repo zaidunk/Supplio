@@ -1,4 +1,4 @@
-import type { ProcurementStatus } from "@/generated/prisma/enums";
+import type { NegotiationStatus, ProcurementStatus } from "@/generated/prisma/enums";
 import type { EvaluateOutcome } from "@/lib/procurement/trigger";
 
 export const STATUS_LABEL: Record<ProcurementStatus, string> = {
@@ -14,6 +14,25 @@ export const STATUS_LABEL: Record<ProcurementStatus, string> = {
   COMPLETED: "Selesai",
   NO_FEASIBLE_SOLUTION: "Tidak ada solusi valid",
   CANCELLED: "Dibatalkan",
+  EXPIRED: "Kedaluwarsa",
+};
+
+export const SESSION_STATUS_LABEL: Record<NegotiationStatus, string> = {
+  PENDING: "Menunggu dikirim",
+  CONTACTED: "Dihubungi",
+  AWAITING_REPLY: "Menunggu balasan",
+  CLARIFYING: "Meminta klarifikasi",
+  NEGOTIATING: "Negosiasi",
+  CONFIRMED: "Penawaran terkonfirmasi",
+  DECLINED: "Menolak",
+  TIMED_OUT: "Tidak membalas / tidak terjangkau",
+};
+
+export const QUOTATION_STATUS_LABEL: Record<"DRAFT" | "NEEDS_CLARIFICATION" | "CONFIRMED" | "REJECTED" | "EXPIRED", string> = {
+  DRAFT: "Draf",
+  NEEDS_CLARIFICATION: "Perlu klarifikasi (belum dipakai)",
+  CONFIRMED: "Penawaran terkonfirmasi",
+  REJECTED: "Digantikan / ditolak",
   EXPIRED: "Kedaluwarsa",
 };
 

@@ -9,7 +9,7 @@ import { DomainError } from "@/lib/errors";
 import { formatDateTime, formatQty, formatRupiah } from "@/lib/format";
 import { getRequestDetail } from "@/lib/procurement/queries";
 import { idSchema } from "@/lib/validation/common";
-import { STATUS_LABEL } from "@/lib/ui/status";
+import { QUOTATION_STATUS_LABEL, SESSION_STATUS_LABEL, STATUS_LABEL } from "@/lib/ui/status";
 
 export default async function ProcurementDetailPage(props: PageProps<"/procurement/[id]">) {
   const business = await requireBusiness();
@@ -79,6 +79,113 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
           </Table>
         </CardContent>
       </Card>
+
+      {request.status === "DRAFT" && request.sessions.length === 0 ? (
+        <Card className="border-amber-500/50">
+          <CardContent className="py-4 text-sm">
+            <strong>Menunggu supplier terhubung.</strong> Belum ada supplier yang menyuplai barang ini dan sudah terhubung ke
+            Telegram. Hubungkan supplier di <Link href="/suppliers" className="underline">halaman Supplier</Link>; permintaan
+            penawaran dikirim otomatis begitu ada yang terhubung.
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {request.sessions.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Percakapan supplier</CardTitle>
+            <CardDescription>
+              Pesan supplier ditampilkan apa adanya sebagai data percakapan. Penawaran terstruktur di atas adalah hasil ekstraksi AI yang divalidasi kode; hanya yang berstatus terkonfirmasi yang dipakai optimasi.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {request.sessions.map((s) => (
+              <div key={s.id} className="rounded-md border p-3">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{s.supplierName}</span>
+                  <Badge variant="secondary">{SESSION_STATUS_LABEL[s.status]}</Badge>
+                  {s.expiresAt ? (
+                    <span className="text-xs text-muted-foreground">batas balasan {formatDateTime(s.expiresAt)}</span>
+                  ) : null}
+                </div>
+                {s.quotations.length > 0 ? (
+                  <div className="mb-3 flex flex-col gap-2">
+                    {s.quotations.map((q) => (
+                      <div key={q.id} className="rounded-md border p-2 text-sm">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <Badge variant={q.status === "CONFIRMED" ? "default" : "outline"}>{QUOTATION_STATUS_LABEL[q.status]}</Badge>
+                          {q.status === "CONFIRMED" ? (
+                            <span className="text-xs text-muted-foreground">
+                              ongkir {q.shippingFee === null ? "-" : formatRupiah(q.shippingFee)} · lead time {q.leadTimeDays ?? "-"} hari
+                            </span>
+                          ) : null}
+                        </div>
+                        {q.items.length > 0 ? (
+                          <ul className="flex flex-col gap-0.5">
+                            {q.items.map((i) => (
+                              <li key={i.productName}>
+                                {i.productName}: {formatRupiah(i.quotedUnitPrice)}/{i.unit} · stok {formatQty(i.availableQuantity)} · MOQ{" "}
+                                {formatQty(i.minimumOrderQuantity)}
+                                {i.packSize ? ` · kemasan ${formatQty(i.packSize)}` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {s.messages.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Belum ada pesan.</p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {s.messages.map((m) => (
+                      <li
+                        key={m.id}
+                        className={`max-w-prose rounded-md px-3 py-2 text-sm ${m.direction === "OUTBOUND" ? "self-start bg-muted" : "self-end border"}`}
+                      >
+                        <div className="mb-0.5 text-xs text-muted-foreground">
+                          {m.sender === "SUPPLIER" ? s.supplierName : m.sender === "AI" ? "Asisten AI Supplio" : "Sistem"} ·{" "}
+                          {formatDateTime(m.createdAt)}
+                        </div>
+                        <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {request.recommendation ? (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle>Hasil optimasi</CardTitle>
+              <Badge variant={request.recommendation.solverStatus === "OPTIMAL" ? "default" : "destructive"}>
+                {request.recommendation.solverStatus === "OPTIMAL" ? "Kombinasi termurah ditemukan" : "Tidak ada solusi valid"}
+              </Badge>
+            </div>
+            <CardDescription>
+              Belum ada komitmen order. Persetujuan akhir ada pada Anda (menyusul di fase berikutnya).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {request.recommendation.solverStatus === "OPTIMAL" ? (
+              <p className="mb-3 text-sm">
+                Total {formatRupiah(request.recommendation.totalCost)} · sisa budget {formatRupiah(request.recommendation.remainingBudget)}
+              </p>
+            ) : null}
+            <ul className="flex flex-col gap-1.5 text-sm">
+              {request.recommendation.explanation.split("\n").map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
