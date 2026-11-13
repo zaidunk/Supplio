@@ -8,6 +8,7 @@ import { listPurchaseOrders, type PurchaseOrderRow } from "./receiving";
 export interface RequestListRow {
   id: string;
   status: ProcurementStatus;
+  triggerSource: "AUTO" | "MANUAL";
   restockBudget: number;
   itemCount: number;
   createdAt: string;
@@ -22,6 +23,7 @@ export async function listRequests(db: Db, businessId: string): Promise<RequestL
     select: {
       id: true,
       status: true,
+      triggerSource: true,
       restockBudget: true,
       createdAt: true,
       expiresAt: true,
@@ -31,6 +33,7 @@ export async function listRequests(db: Db, businessId: string): Promise<RequestL
   return rows.map((r) => ({
     id: r.id,
     status: r.status,
+    triggerSource: r.triggerSource,
     restockBudget: r.restockBudget,
     itemCount: r._count.items,
     createdAt: r.createdAt.toISOString(),

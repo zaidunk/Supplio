@@ -135,32 +135,20 @@ export async function evaluateRestock(db: PrismaClient, input: EvaluateInput): P
   const expiresAt = new Date(now.getTime() + expiryHours * 3_600_000);
 
   try {
-    const requestId = await db.$transaction(async (tx) => {
-      const request = await tx.procurementRequest.create({
-        data: {
-          businessId,
-          restockBudget: business.defaultRestockBudget, // snapshot; perubahan setting tidak memengaruhi request ini
-          status: "DRAFT",
-          aiSettingsVersion: aiSettings?.version ?? 1,
-          triggerKey,
-          expiresAt,
-        },
-        select: { id: true },
-      });
-      await tx.procurementRequestItem.createMany({
-        data: triggered.map(({ product, requiredQuantity }) => ({
-          requestId: request.id,
-          businessId,
-          productId: product.id,
-          requiredQuantity: requiredQuantity.toString(), // snapshot untuk audit
-          maxDeliveryDays: product.plannedLeadTimeDays ?? 0, // default = plannedLeadTimeDays (§4.1)
-          allowedOverbuyQuantity: product.allowedOverbuyQuantity,
-        })),
-      });
-      await tx.procurementStatusTransition.create({
-        data: { requestId: request.id, fromStatus: null, toStatus: "DRAFT", reason: "Trigger restock otomatis" },
-      });
-      return request.id;
+    const requestId = await insertRequest(db, {
+      businessId,
+      restockBudget: business.defaultRestockBudget, // snapshot; perubahan setting tidak memengaruhi request ini
+      aiSettingsVersion: aiSettings?.version ?? 1,
+      triggerKey,
+      expiresAt,
+      triggerSource: "AUTO",
+      reason: "Trigger restock otomatis",
+      items: triggered.map(({ product, requiredQuantity }) => ({
+        productId: product.id,
+        requiredQuantity: requiredQuantity.toString(), // snapshot untuk audit
+        maxDeliveryDays: product.plannedLeadTimeDays ?? 0, // default = plannedLeadTimeDays (§4.1)
+        allowedOverbuyQuantity: product.allowedOverbuyQuantity.toString(),
+      })),
     });
     return { outcome: "CREATED", requestId, productIds: triggered.map((t) => t.product.id), issues };
   } catch (e) {
@@ -170,6 +158,160 @@ export async function evaluateRestock(db: PrismaClient, input: EvaluateInput): P
     if (again) return { outcome: "EXISTING", requestId: again.id };
     const raced = await findActiveSourcing(db, businessId);
     if (raced) return deferOrCovered(raced, triggered, issues);
+    throw e;
+  }
+}
+
+interface InsertRequestInput {
+  businessId: string;
+  restockBudget: number;
+  aiSettingsVersion: number;
+  triggerKey: string;
+  expiresAt: Date;
+  triggerSource: "AUTO" | "MANUAL";
+  reason: string;
+  items: { productId: string; requiredQuantity: string; maxDeliveryDays: number; allowedOverbuyQuantity: string }[];
+}
+
+/** Request DRAFT + item + riwayat transisi awal dalam satu transaksi; dipakai jalur otomatis dan manual. */
+async function insertRequest(db: PrismaClient, input: InsertRequestInput): Promise<string> {
+  return db.$transaction(async (tx) => {
+    const request = await tx.procurementRequest.create({
+      data: {
+        businessId: input.businessId,
+        restockBudget: input.restockBudget,
+        status: "DRAFT",
+        triggerSource: input.triggerSource,
+        aiSettingsVersion: input.aiSettingsVersion,
+        triggerKey: input.triggerKey,
+        expiresAt: input.expiresAt,
+      },
+      select: { id: true },
+    });
+    await tx.procurementRequestItem.createMany({
+      data: input.items.map((item) => ({ requestId: request.id, businessId: input.businessId, ...item })),
+    });
+    await tx.procurementStatusTransition.create({
+      data: { requestId: request.id, fromStatus: null, toStatus: "DRAFT", reason: input.reason },
+    });
+    return request.id;
+  });
+}
+
+export interface ManualRequestInput {
+  businessId: string;
+  /** Kunci per percobaan kirim dari form: klik ganda/retry jaringan tidak membuat request ganda. */
+  clientKey: string;
+  items: { productId: string; quantity: string; maxDeliveryDays?: number }[];
+  expiryHours: number;
+  now?: Date;
+}
+
+export type ManualRequestOutcome = Extract<EvaluateOutcome, { outcome: "CREATED" | "EXISTING" }>;
+
+/**
+ * Permintaan penawaran manual oleh owner (SUPPLIO.md §4.1): barang yang dipilih ikut request walau belum mencapai
+ * reorder point, dengan kuantitas yang owner tentukan. Aturan lain tetap sama dengan jalur otomatis: budget terisi,
+ * supplier aktif ada, dan hanya satu proses sourcing aktif per bisnis. Berbeda dari otomatis, bentrok dengan
+ * sourcing aktif DITOLAK (409) agar owner tahu, bukan ditunda diam-diam.
+ */
+export async function createManualRequest(db: PrismaClient, input: ManualRequestInput): Promise<ManualRequestOutcome> {
+  const { businessId, clientKey, expiryHours } = input;
+  const triggerKey = buildTriggerKey(businessId, `manual:${clientKey}`);
+
+  const replay = await db.procurementRequest.findUnique({ where: { triggerKey }, select: { id: true } });
+  if (replay) return { outcome: "EXISTING", requestId: replay.id };
+
+  if (input.items.length === 0) throw new DomainError("NO_ITEMS", "Pilih minimal satu barang.");
+  const productIds = input.items.map((i) => i.productId);
+  if (new Set(productIds).size !== productIds.length) {
+    throw new DomainError("DUPLICATE_PRODUCT", "Satu barang hanya boleh muncul sekali dalam permintaan.");
+  }
+
+  const business = await db.business.findUnique({ where: { id: businessId }, select: { defaultRestockBudget: true } });
+  if (!business) throw new DomainError("BUSINESS_NOT_FOUND", "Bisnis tidak ditemukan.", 404);
+  if (business.defaultRestockBudget <= 0) {
+    throw new DomainError("RESTOCK_BUDGET_NOT_SET", "Restock Budget belum diatur. Isi dulu di Settings.", 409);
+  }
+
+  const products = await db.product.findMany({
+    where: { businessId, id: { in: productIds } },
+    select: {
+      id: true,
+      name: true,
+      quantityScale: true,
+      plannedLeadTimeDays: true,
+      allowedOverbuyQuantity: true,
+      _count: { select: { supplierProducts: { where: { supplier: { isActive: true } } } } },
+    },
+  });
+  const byId = new Map(products.map((p) => [p.id, p]));
+
+  const items: InsertRequestInput["items"] = [];
+  for (const item of input.items) {
+    const product = byId.get(item.productId);
+    if (!product) throw new DomainError("PRODUCT_NOT_FOUND", "Produk tidak ditemukan.", 404);
+    if (product._count.supplierProducts === 0) {
+      throw new DomainError("NO_ACTIVE_SUPPLIER", `${product.name}: belum ada supplier aktif.`, 409);
+    }
+    const quantity = new Decimal(item.quantity);
+    if (!quantity.gt(0)) throw new DomainError("INVALID_QUANTITY", `${product.name}: jumlah harus lebih dari 0.`);
+    if (quantity.decimalPlaces() > product.quantityScale) {
+      throw new DomainError(
+        "QUANTITY_SCALE_EXCEEDED",
+        `${product.name}: satuan ini hanya mengizinkan ${product.quantityScale} desimal.`,
+      );
+    }
+    const maxDeliveryDays = item.maxDeliveryDays ?? product.plannedLeadTimeDays;
+    if (maxDeliveryDays === null) {
+      throw new DomainError("MAX_DELIVERY_DAYS_REQUIRED", `${product.name}: isi batas hari kedatangan (lead time belum diatur).`);
+    }
+    items.push({
+      productId: product.id,
+      requiredQuantity: quantity.toString(), // snapshot: jumlah yang owner setujui untuk diminta
+      maxDeliveryDays,
+      allowedOverbuyQuantity: product.allowedOverbuyQuantity.toString(),
+    });
+  }
+
+  const activeError = async () => {
+    const active = await findActiveSourcing(db, businessId);
+    return active
+      ? new DomainError(
+          "ACTIVE_SOURCING_EXISTS",
+          "Masih ada proses sourcing aktif. Selesaikan atau batalkan dulu di halaman Procurement sebelum meminta penawaran baru.",
+          409,
+        )
+      : null;
+  };
+  const blocked = await activeError();
+  if (blocked) throw blocked;
+
+  const aiSettings = await db.aISettings.findFirst({
+    where: { businessId },
+    orderBy: { version: "desc" },
+    select: { version: true },
+  });
+  const now = input.now ?? new Date();
+
+  try {
+    const requestId = await insertRequest(db, {
+      businessId,
+      restockBudget: business.defaultRestockBudget,
+      aiSettingsVersion: aiSettings?.version ?? 1,
+      triggerKey,
+      expiresAt: new Date(now.getTime() + expiryHours * 3_600_000),
+      triggerSource: "MANUAL",
+      reason: "Diminta manual oleh owner",
+      items,
+    });
+    return { outcome: "CREATED", requestId, productIds, issues: [] };
+  } catch (e) {
+    if (!isUniqueViolation(e)) throw e;
+    const again = await db.procurementRequest.findUnique({ where: { triggerKey }, select: { id: true } });
+    if (again) return { outcome: "EXISTING", requestId: again.id };
+    const raced = await activeError();
+    if (raced) throw raced;
     throw e;
   }
 }

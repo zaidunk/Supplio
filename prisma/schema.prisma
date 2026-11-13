@@ -39,6 +39,11 @@ enum ProcurementStatus {
   EXPIRED
 }
 
+enum TriggerSource {
+  AUTO
+  MANUAL
+}
+
 enum NegotiationStatus {
   PENDING
   CONTACTED
@@ -253,6 +258,8 @@ model ProcurementRequest {
   /// Snapshot dari Business.defaultRestockBudget saat dibuat; integer IDR > 0.
   restockBudget     Int
   status            ProcurementStatus @default(DRAFT)
+  /// AUTO = dipicu evaluasi restock; MANUAL = diminta owner dari Inventory (tanpa menunggu ambang batas).
+  triggerSource     TriggerSource     @default(AUTO)
   aiSettingsVersion Int
   /// Kunci idempotensi trigger (mis. hash kebutuhan + minute-bucket) agar evaluasi ganda tidak membuat request ganda.
   triggerKey        String            @unique
