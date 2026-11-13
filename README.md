@@ -19,7 +19,8 @@ AI-assisted inventory & procurement untuk UMKM kuliner. Sumber kebenaran produk:
 | `npm run dev` / `build` / `start` | Next.js |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest (unit/integration; OpenAI & Telegram selalu di-mock) |
+| `npm test` | Vitest unit test (cepat, tanpa database; OpenAI & Telegram selalu di-mock) |
+| `npm run test:integration` | Integration test ke database sungguhan (`DATABASE_URL`). Memakai bisnis uji terisolasi (`ownerUserId` berawalan `itest-`) yang dihapus setelahnya; data demo tidak disentuh |
 | `npm run db:migrate` | `prisma migrate deploy` |
 | `npm run db:seed` | Seed demo (idempotent) |
 
