@@ -49,6 +49,23 @@ LLM: Google Gemini (`GEMINI_API_KEY`, `GEMINI_MODEL`, default `gemini-2.5-flash`
 - Tes memakai model palsu (`npm test`, `npm run test:integration`). `npm run test:live` memanggil Gemini sungguhan
   (3 skenario, beberapa panggilan); jalankan seperlunya agar tidak menghabiskan kuota.
 
+## Persetujuan, PO, dan penerimaan barang
+
+Setelah optimasi menghasilkan rekomendasi (status `AWAITING_APPROVAL`), tidak ada pesanan sebelum pemilik menyetujui
+di `/procurement/[id]`.
+
+- `POST /api/procurement/[id]/approve` (hanya pemilik terautentikasi; body strict, `businessId` tidak bisa disuntik).
+  Sebelum PO dibuat, rekomendasi divalidasi ulang terhadap data terbaru (harga, ongkir, total, budget, MOQ). Bila ada
+  yang berubah, request kembali ke `OPTIMIZING`, optimasi diulang, dan respons 409 `REVALIDATION_FAILED`. Persetujuan
+  ganda/bersamaan menghasilkan satu set PO (idempotent, row lock).
+- Satu PO per supplier terpilih; konfirmasi pesanan dikirim ke supplier via Telegram lewat event Inngest
+  `procurement/approved` (jalur cadangan: `after()` langsung). `POST /api/purchase-orders/[id]/send` mengirim ulang.
+- `POST /api/procurement/[id]/reject` membatalkan request dan menutup sesi sourcing yang masih berjalan.
+- `/receiving` dan `POST /api/purchase-orders/[id]/receipts`: catat barang yang benar-benar diterima (kunci idempotensi
+  wajib). Stok bertambah hanya sebesar jumlah yang diterima, tidak boleh melebihi sisa pesanan. Penerimaan sebagian
+  didukung; request menjadi `COMPLETED` setelah semua PO selesai, lalu restock dievaluasi ulang.
+- `GET /api/purchase-orders` (`?outstanding=1`) dan `GET /api/purchase-orders/[id]`.
+
 ## Skrip
 
 | Perintah | Fungsi |
