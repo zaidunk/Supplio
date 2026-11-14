@@ -85,10 +85,10 @@ export function ApprovalPanel(props: {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap gap-3">
-        <Button type="button" size="lg" onClick={() => open("approve")} disabled={disabled}>
+        <Button type="button" size="lg" motion="press" onClick={() => open("approve")} disabled={disabled}>
           {busy === "approve" ? "Memproses…" : "Setujui pembelian"}
         </Button>
-        <Button type="button" variant="destructive" size="lg" onClick={() => open("reject")} disabled={disabled}>
+        <Button type="button" variant="destructive" size="lg" motion="press" onClick={() => open("reject")} disabled={disabled}>
           {busy === "reject" ? "Memproses…" : "Tolak dan batalkan"}
         </Button>
       </div>
@@ -129,7 +129,7 @@ export function ApprovalPanel(props: {
               <Button type="button" variant="outline" onClick={close}>
                 Kembali
               </Button>
-              <Button type="button" onClick={approve}>
+              <Button type="button" motion="press" onClick={approve}>
                 Ya, setujui
               </Button>
             </div>

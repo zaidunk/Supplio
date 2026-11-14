@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db/prisma";
 import { getNavBadgeCounts } from "@/lib/procurement/nav-counts";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/inventory", label: "Inventory", icon: "inventory" },
   { href: "/suppliers", label: "Supplier", icon: "suppliers" },
   { href: "/procurement", label: "Procurement", icon: "procurement", badgeKey: "awaitingApproval" },
@@ -19,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const badges = getNavBadgeCounts(prisma, business.id);
 
   return (
-    <AppShell items={[...NAV]} badges={badges} businessName={business.name} signOutAction={signOut}>
+    <AppShell items={[...NAV]} badges={badges} signOutAction={signOut}>
       {children}
     </AppShell>
   );

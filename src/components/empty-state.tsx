@@ -1,6 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 
 /** Keadaan kosong dengan satu langkah berikutnya, bukan hanya teks abu-abu. */
 export function EmptyState({
@@ -18,9 +17,7 @@ export function EmptyState({
       <p className="text-xl font-medium text-blue-700">{title}</p>
       {description ? <p className="max-w-[360px] text-sm text-muted-foreground">{description}</p> : null}
       {action ? (
-        <Link href={action.href} className={buttonVariants()}>
-          {action.label}
-        </Link>
+        <ButtonLink href={action.href}>{action.label}</ButtonLink>
       ) : null}
     </div>
   );

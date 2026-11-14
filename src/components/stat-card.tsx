@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { JellyLink } from "@/components/jelly-link";
 import { cn } from "@/lib/utils";
 
 /**
@@ -25,7 +25,6 @@ export function StatCard({
         featured
           ? "border-transparent bg-[image:var(--grad-blue)] text-white shadow-md"
           : "border-line bg-card",
-        href && (featured ? "hover:-translate-y-0.5" : "hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm"),
       )}
     >
       <span className={cn("text-sm", featured ? "text-blue-100" : "text-muted-foreground")}>{label}</span>
@@ -34,9 +33,9 @@ export function StatCard({
   );
 
   return href ? (
-    <Link href={href} className={cn("block", className)}>
+    <JellyLink href={href} motion="card" className={cn("block", className)}>
       {body}
-    </Link>
+    </JellyLink>
   ) : (
     <div className={className}>{body}</div>
   );

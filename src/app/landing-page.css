@@ -2300,3 +2300,6 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
         transform: none !important
     }
 }
+/* Tombol masuk terangkat 2px saat hover; area sentuh tak kasatmata ini mencegah pointer di tepi bawah keluar-masuk (kedap-kedip). */
+.lp-header-login,.lp-action{position:relative}
+.lp-header-login::after,.lp-action::after{content:"";position:absolute;inset:-6px 0}

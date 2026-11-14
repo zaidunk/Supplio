@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { JellyLink } from "@/components/jelly-link";
 import { iconProps } from "@/lib/ui/icons";
 
 /** Judul halaman seragam: ukuran h1 dibatasi supaya halaman data padat tidak kehilangan ruang. */
@@ -22,10 +22,10 @@ export function PageHeader({
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="min-w-0">
         {back ? (
-          <Link href={back.href} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <JellyLink href={back.href} motion="back" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft {...iconProps} />
             {back.label}
-          </Link>
+          </JellyLink>
         ) : null}
         <div className={`flex flex-wrap items-center gap-3 ${back ? "mt-2" : ""}`}>
           <h1 className="text-2xl leading-[30px] font-medium tracking-[-0.025em] text-blue-700 md:text-[32px] md:leading-9">{title}</h1>

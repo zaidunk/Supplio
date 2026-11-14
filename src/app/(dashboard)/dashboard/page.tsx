@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { ProductStatusBadge, RequestStatusBadge } from "@/components/status-badge";
 import { StatCard } from "@/components/stat-card";
-import { buttonVariants } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
@@ -33,9 +33,9 @@ export default async function DashboardPage() {
       <PageHeader
         title="Dashboard"
         actions={
-          <Link href="/inventory?dialog=minta-penawaran" className={buttonVariants({ variant: "outline" })}>
+          <ButtonLink href="/inventory?dialog=minta-penawaran" variant="outline">
             Minta penawaran manual
-          </Link>
+          </ButtonLink>
         }
       />
 
@@ -58,9 +58,9 @@ export default async function DashboardPage() {
                   <span>
                     {r.itemCount} barang, dibuat {formatDateTime(r.createdAt)}
                   </span>
-                  <Link href={`/procurement/${r.id}`} className={buttonVariants()}>
+                  <ButtonLink href={`/procurement/${r.id}`}>
                     Tinjau dan putuskan
-                  </Link>
+                  </ButtonLink>
                 </div>
               ))}
             </CardContent>
