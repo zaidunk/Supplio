@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title desc">
+  <title id="title">Supplio Open Ally mascot logo draft</title>
+  <desc id="desc">A composed front-facing parcel mascot with one raised pink flap, designed as a trustworthy assistant.</desc>
+  <g id="symbol">
+    <path fill="#FC90CB" d="M140 98L188 50C195 43 204 43 211 50L230 69L201 98Z"/>
+    <path fill="#0A2E8C" d="M52 86H159L185 100H203C218 100 228 111 228 126V197C228 215 213 230 195 230H61C43 230 28 215 28 197V117C28 99 34 86 52 86Z"/>
+    <path fill="#FDFBFE" d="M52 86H159L185 101L159 116H72L46 101Z"/>
+    <path fill="#FC90CB" d="M46 101L72 116H159L185 101L181 114L164 123H67L50 114Z"/>
+    <ellipse cx="91" cy="154" rx="14" ry="18" fill="#FDFBFE"/>
+    <ellipse cx="165" cy="154" rx="14" ry="18" fill="#FDFBFE"/>
+    <ellipse cx="95" cy="157" rx="5" ry="7" fill="#0A2E8C"/>
+    <ellipse cx="169" cy="157" rx="5" ry="7" fill="#0A2E8C"/>
+    <path fill="#FC90CB" d="M117 188C124 192 132 192 139 188C137 197 134 200 128 200C122 200 119 197 117 188Z"/>
+  </g>
+</svg>

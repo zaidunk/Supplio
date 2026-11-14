@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title">
+  <title id="title">Supplio Steady Scout mascot concept, monochrome draft</title>
+  <g id="symbol">
+    <path fill="#111111" d="M76 96L89 43C92 31 101 24 113 24H184C195 24 201 35 196 45L173 96H204C219 96 230 108 230 123V194C230 214 214 230 194 230H62C42 230 26 214 26 194V123C26 108 37 96 52 96H76Z"/>
+    <ellipse cx="88" cy="148" rx="22" ry="25" fill="#FFFFFF"/>
+    <ellipse cx="162" cy="148" rx="22" ry="25" fill="#FFFFFF"/>
+    <ellipse cx="92" cy="151" rx="8" ry="10" fill="#111111"/>
+    <ellipse cx="166" cy="151" rx="8" ry="10" fill="#111111"/>
+    <path fill="#FFFFFF" d="M107 183H149C145 196 138 202 128 202C118 202 111 196 107 183Z"/>
+  </g>
+</svg>

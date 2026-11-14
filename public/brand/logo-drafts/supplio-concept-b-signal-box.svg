@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title desc">
+  <title id="title">Supplio Signal Box mascot logo draft</title>
+  <desc id="desc">A focused navy parcel mascot with a single pink flap angled like an attentive listening ear.</desc>
+  <g id="symbol">
+    <path fill="#FC90CB" d="M76 91L29 57C21 51 22 39 32 35L79 20C89 17 99 23 102 33L117 86Z"/>
+    <path fill="#0A2E8C" d="M56 84H198C215 84 228 97 228 114V194C228 214 212 230 192 230H64C44 230 28 214 28 194V114C28 97 39 86 56 84Z"/>
+    <path fill="#FDFBFE" d="M56 84H173L198 98L178 112H72L46 98Z"/>
+    <path fill="#FC90CB" d="M46 98L72 112H178L198 98L193 114H67Z"/>
+    <ellipse cx="91" cy="149" rx="18" ry="22" fill="#FDFBFE"/>
+    <ellipse cx="163" cy="149" rx="18" ry="22" fill="#FDFBFE"/>
+    <circle cx="88" cy="152" r="7" fill="#0A2E8C"/>
+    <circle cx="160" cy="152" r="7" fill="#0A2E8C"/>
+    <path fill="#FDFBFE" d="M116 187C123 190 133 190 140 187C139 197 135 201 128 201C121 201 117 197 116 187Z"/>
+  </g>
+</svg>

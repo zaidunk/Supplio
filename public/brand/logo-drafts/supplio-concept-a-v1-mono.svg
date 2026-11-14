@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title">
+  <title id="title">Supplio Open Ally mascot concept, monochrome draft</title>
+  <g id="symbol">
+    <path fill="#111111" d="M49 78H151L182 42C188 35 198 34 205 40L229 61L199 93H207C220 93 230 103 230 116V194C230 214 214 230 194 230H62C42 230 26 214 26 194V114C26 94 34 78 49 78Z"/>
+    <ellipse cx="86" cy="139" rx="22" ry="25" fill="#FFFFFF"/>
+    <ellipse cx="160" cy="139" rx="22" ry="25" fill="#FFFFFF"/>
+    <ellipse cx="91" cy="143" rx="8" ry="10" fill="#111111"/>
+    <ellipse cx="165" cy="143" rx="8" ry="10" fill="#111111"/>
+    <path fill="#FFFFFF" d="M103 177C110 184 118 187 128 187C138 187 146 184 153 177C151 194 142 202 128 202C114 202 105 194 103 177Z"/>
+  </g>
+</svg>
