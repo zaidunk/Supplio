@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title desc">
+  <title id="title">Supplio Steady Scout mascot logo draft</title>
+  <desc id="desc">A structured parcel-badge mascot with one centered pink flap and a calm observant expression.</desc>
+  <g id="symbol">
+    <path fill="#FC90CB" d="M79 96L93 47C97 33 108 25 122 25H181C193 25 200 37 194 47L167 96Z"/>
+    <path fill="#0A2E8C" d="M52 88H204L228 112V199L202 228H54L28 201V112Z"/>
+    <path fill="#FDFBFE" d="M52 88H180L204 104L178 121H76L50 104Z"/>
+    <path fill="#FC90CB" d="M50 104L76 121H178L204 104L199 119L183 130H71L55 119Z"/>
+    <ellipse cx="92" cy="161" rx="15" ry="18" fill="#FDFBFE"/>
+    <ellipse cx="164" cy="161" rx="15" ry="18" fill="#FDFBFE"/>
+    <ellipse cx="96" cy="164" rx="5" ry="7" fill="#0A2E8C"/>
+    <ellipse cx="168" cy="164" rx="5" ry="7" fill="#0A2E8C"/>
+    <path fill="#FC90CB" d="M116 193H140C138 200 134 203 128 203C122 203 118 200 116 193Z"/>
+  </g>
+</svg>

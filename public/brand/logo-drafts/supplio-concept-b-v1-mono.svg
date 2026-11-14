@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title">
+  <title id="title">Supplio Signal Box mascot concept, monochrome draft</title>
+  <g id="symbol">
+    <path fill="#111111" d="M50 83L27 56C21 49 24 39 33 36L80 20C90 17 100 23 103 33L118 82H201C218 82 230 95 230 112V194C230 214 214 230 194 230H62C42 230 26 214 26 194V119C26 101 34 88 50 83Z"/>
+    <ellipse cx="88" cy="141" rx="23" ry="27" fill="#FFFFFF"/>
+    <ellipse cx="162" cy="141" rx="23" ry="27" fill="#FFFFFF"/>
+    <circle cx="94" cy="145" r="9" fill="#111111"/>
+    <circle cx="168" cy="145" r="9" fill="#111111"/>
+    <path fill="#FFFFFF" d="M112 183C121 188 135 188 144 183C143 195 137 201 128 201C119 201 113 195 112 183Z"/>
+  </g>
+</svg>
