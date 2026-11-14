@@ -7,7 +7,9 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient() {
   const adapter = new PrismaPg({ connectionString: getServerEnv().DATABASE_URL });
-  return new PrismaClient({ adapter });
+  // Default Prisma 5 dtk terlalu pendek untuk transaksi interaktif berisi puluhan query lewat pooler Supabase
+  // (mis. Final Approval); kedaluwarsa di tengah jalan membuat request 500 meski datanya benar.
+  return new PrismaClient({ adapter, transactionOptions: { maxWait: 10_000, timeout: 30_000 } });
 }
 
 /** Singleton agar hot-reload dev tidak membuka koneksi baru terus-menerus. */
