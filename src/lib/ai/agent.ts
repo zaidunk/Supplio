@@ -11,7 +11,7 @@ import type { NegotiationStatus, PrismaClient } from "@/generated/prisma/client"
 import type { AppEvent } from "@/lib/events";
 import { ACTIVE_SESSION_STATUSES } from "@/lib/procurement/sessions";
 import type { TelegramClient } from "@/lib/telegram/client";
-import { HISTORY_LIMIT, MAX_MODEL_STEPS, MODEL_TIMEOUT_MS } from "./constants";
+import { HISTORY_LIMIT, MAX_MODEL_STEPS, MODEL_LOOP_BUDGET_MS, MODEL_TIMEOUT_MS } from "./constants";
 import { buildProcurementContext, otherSupplierNames } from "./context";
 import { CLOSING_MESSAGES, SAFE_FALLBACKS, buildClarificationFallback, type MessageKind } from "./guard";
 import { buildSystemPrompt, buildTurnPrompt } from "./prompts";
@@ -154,14 +154,61 @@ export async function handleSupplierMessage(
   return { status: "HANDLED", sessionStatus, events };
 }
 
-/** Loop model ↔ tool dengan batas langkah. Hanya tool yang terdaftar yang bisa dijalankan; sisanya ditolak. */
-async function runModelLoop(modelFactory: AgentModelFactory, tools: StructuredToolInterface[], initial: BaseMessage[]): Promise<void> {
+export interface ModelStepLog {
+  step: number;
+  durationMs: number;
+  outcome: "ok" | "error";
+  toolCalls?: number;
+  error?: string;
+}
+
+export interface ModelLoopOptions {
+  /** Batas total seluruh loop (model + tool), ms. */
+  budgetMs?: number;
+  /** Batas satu panggilan model, ms. */
+  callTimeoutMs?: number;
+  /** Penerima log durasi per panggilan model. Bawaan: satu baris `console.info`. */
+  onStep?: (log: ModelStepLog) => void;
+}
+
+/** Hanya angka dan nama galat: isi prompt/konteks (budget, harga maksimum) tidak boleh masuk log. */
+const logModelStep = (log: ModelStepLog) => console.info("[agent] langkah model", JSON.stringify(log));
+
+/**
+ * Loop model ↔ tool dengan batas langkah. Hanya tool yang terdaftar yang bisa dijalankan; sisanya ditolak.
+ * Seluruh loop punya batas waktu total di bawah batas fungsi serverless. Galatnya memakai kata "Model tidak
+ * merespons" agar `classifyLlmError` mengulang giliran (idempoten) alih-alih fungsi dibunuh tanpa jejak.
+ */
+export async function runModelLoop(
+  modelFactory: AgentModelFactory,
+  tools: StructuredToolInterface[],
+  initial: BaseMessage[],
+  options: ModelLoopOptions = {},
+): Promise<void> {
+  const { budgetMs = MODEL_LOOP_BUDGET_MS, callTimeoutMs = MODEL_TIMEOUT_MS, onStep = logModelStep } = options;
+  const deadline = Date.now() + budgetMs;
   const byName = new Map(tools.map((t) => [t.name, t]));
   const runnable = modelFactory(tools);
   const messages = [...initial];
 
   for (let step = 0; step < MAX_MODEL_STEPS; step++) {
-    const ai = await withTimeout(runnable.invoke(messages), MODEL_TIMEOUT_MS);
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) throw new Error(`Model tidak merespons: batas waktu giliran ${budgetMs} ms habis sebelum langkah ${step + 1}`);
+
+    const startedAt = Date.now();
+    let ai: AIMessage | AIMessageChunk;
+    try {
+      ai = await withTimeout(runnable.invoke(messages), Math.min(callTimeoutMs, remaining));
+    } catch (e) {
+      onStep({
+        step: step + 1,
+        durationMs: Date.now() - startedAt,
+        outcome: "error",
+        error: (e instanceof Error ? `${e.name}: ${e.message}` : String(e)).slice(0, 200),
+      });
+      throw e;
+    }
+    onStep({ step: step + 1, durationMs: Date.now() - startedAt, outcome: "ok", toolCalls: ai.tool_calls?.length ?? 0 });
     messages.push(ai);
 
     const calls = ai.tool_calls ?? [];

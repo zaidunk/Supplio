@@ -22,5 +22,11 @@ export const MAX_MESSAGE_LENGTH = 1500;
 /** Batas waktu satu panggilan model (ms). */
 export const MODEL_TIMEOUT_MS = 60_000;
 
+/**
+ * Batas waktu total loop model + tool dalam satu giliran (ms). Harus di bawah `maxDuration` route Inngest (60 dtk):
+ * bila fungsi dibunuh platform, tidak ada galat yang tercatat dan giliran diulang dari awal tanpa petunjuk penyebabnya.
+ */
+export const MODEL_LOOP_BUDGET_MS = 45_000;
+
 /** Berapa pesan terakhir yang disertakan sebagai riwayat ke model. */
 export const HISTORY_LIMIT = 12;
