@@ -1,0 +1,127 @@
+/* Efek kecil maskot (z, hati, tanda tanya, pusing). Durasi otomatis ~0 saat prefers-reduced-motion (globals.css). */
+
+.mascot-fx {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-float-up 1.9s ease-out infinite;
+}
+
+.mascot-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+
+.mascot-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-spin 0.9s linear infinite;
+}
+
+.mascot-bob {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: mascot-bob 1.2s ease-in-out infinite;
+}
+
+@keyframes mascot-float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-38px) scale(1.1);
+  }
+}
+
+@keyframes mascot-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mascot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mascot-bob {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+
+/* Terbang dan jatuh: sengaja pelan dan samar. */
+.mascot-streak-x,
+.mascot-streak-y {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mascot-streak-x {
+  animation: mascot-streak-x 1.5s ease-in-out infinite;
+}
+
+.mascot-streak-y {
+  animation: mascot-streak-y 1.5s ease-in-out infinite;
+}
+
+.mascot-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mascot-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes mascot-streak-x {
+  0% {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+@keyframes mascot-streak-y {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes mascot-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scaleX(0.9);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scaleX(1.08);
+  }
+}

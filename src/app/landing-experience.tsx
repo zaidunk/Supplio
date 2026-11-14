@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { JellyLink } from "@/components/jelly-link";
 import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, SlidersHorizontal } from "lucide-react";
 import "./landing-page.css";
 
@@ -14,7 +15,7 @@ const steps = [
 ];
 
 function ActionLink() {
-  return <Link href="/login" className="lp-action">Masuk ke Supplio <ArrowUpRight aria-hidden="true" size={19} strokeWidth={1.75} /></Link>;
+  return <JellyLink href="/login" className="lp-action">Masuk ke Supplio <ArrowUpRight aria-hidden="true" size={19} strokeWidth={1.75} /></JellyLink>;
 }
 
 function Header() {
@@ -25,7 +26,7 @@ function Header() {
       <Image className="lp-logo-icon" src="/brand/icon.svg" width={34} height={33} alt="Supplio" priority />
     </a>
     <nav className="lp-desktop-nav" aria-label="Navigasi utama"><a href="#cara-kerja">Cara kerja</a><a href="#kemampuan">Kemampuan</a><a href="#kendali">Kendali Anda</a><a href="#pertanyaan">Pertanyaan</a></nav>
-    <div className="lp-header-right"><Link href="/login" className="lp-header-login">Masuk <ArrowUpRight size={17} aria-hidden="true" /></Link>
+    <div className="lp-header-right"><JellyLink href="/login" className="lp-header-login">Masuk <ArrowUpRight size={17} aria-hidden="true" /></JellyLink>
       <details ref={menuRef} className="lp-mobile-menu" onKeyDown={(event) => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); } }}><summary>Menu <ChevronDown size={18} aria-hidden="true" /></summary><nav aria-label="Navigasi seluler" onClick={() => { if (menuRef.current) menuRef.current.open = false; }}><a href="#cara-kerja">Cara kerja</a><a href="#kemampuan">Kemampuan</a><a href="#kendali">Kendali Anda</a><a href="#pertanyaan">Pertanyaan</a><Link href="/login">Masuk ke Supplio</Link></nav></details>
     </div>
   </div></header>;

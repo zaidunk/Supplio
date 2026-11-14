@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { MascotGuide } from "@/components/mascot/mascot-guide";
 import LandingExperience from "./landing-experience";
+import { LANDING_MASCOT_SECTIONS } from "./landing-mascot";
 
 export const metadata: Metadata = {
   title: "Supplio — Restock dan penawaran supplier untuk UMKM",
@@ -8,5 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function LandingPage() {
-  return <LandingExperience />;
+  return (
+    <>
+      <LandingExperience />
+      <MascotGuide sections={LANDING_MASCOT_SECTIONS} />
+    </>
+  );
 }
