@@ -228,16 +228,16 @@ Mapping ke variabel shadcn yang sudah ada, sehingga komponen `src/components/ui/
 
 | Peran | Font | Alasan |
 |---|---|---|
-| **Utama (judul + isi + UI)** | **Plus Jakarta Sans** | Geometris, hangat, bentuk huruf terbuka untuk teks Indonesia, bobot 400–800 lengkap, gratis via `next/font/google`. Cocok untuk kepribadian ramah-tapi-tegas. |
+| **Utama (judul + isi + UI)** | **Plus Jakarta Sans** | Geometris, hangat, bentuk huruf terbuka untuk teks Indonesia, bobot 400–700 lengkap, gratis via `next/font/google`. Cocok untuk kepribadian ramah-tapi-tegas. |
 | **Mono (kode, ID, token, SKU)** | **Geist Mono** (sudah terpasang) | Dipertahankan agar tidak menambah dependensi. |
 
 Alternatif cadangan bila Plus Jakarta tak tersedia: Manrope → Inter. Hanya **satu** keluarga sans yang dipakai. Jangan mencampur.
 
-Penerapan di `src/app/layout.tsx` (saat implementasi): ganti `Geist` dengan `Plus_Jakarta_Sans({ variable: "--font-sans", subsets: ["latin"], weight: ["400","500","600","700","800"] })`. Variabel `--font-sans` dan `--font-heading` sudah dipetakan di `globals.css`.
+Penerapan di `src/app/layout.tsx` (saat implementasi): ganti `Geist` dengan `Plus_Jakarta_Sans({ variable: "--font-sans", subsets: ["latin"], weight: ["400","500","600","700"] })`. Variabel `--font-sans` dan `--font-heading` sudah dipetakan di `globals.css`.
 
-### 4.2 Bobot yang dipakai (hanya 4)
+### 4.2 Bobot yang dipakai (hanya 3)
 
-`400` isi · `500` label/UI · `700` judul bagian & tombol penting · `800` judul display (H1/hero). Tidak memakai 300 atau 900.
+`400` isi · `500` label/UI · `700` judul display (H1/hero), judul bagian & tombol penting. Tidak memakai 300, 800 (Extra Bold), atau 900 (hanya Bold, tanpa Extra Bold).
 
 ### 4.3 Skala tipografi
 
@@ -245,8 +245,8 @@ Ukuran fluid dengan `clamp()` untuk judul; isi tetap statis. Line-height judul *
 
 | Token | Ukuran (mobile → desktop) | Bobot | Line-height | Letter-spacing | Pakai untuk |
 |---|---|---|---|---|---|
-| `display` | `clamp(2.5rem, 6vw, 4.5rem)` | 800 | 1.02 | −0.035em | Hero/halaman login/landing (bila ada) |
-| `h1` | `clamp(2rem, 4vw, 3rem)` | 800 | 1.08 | −0.03em | Judul halaman |
+| `display` | `clamp(2.5rem, 6vw, 4.5rem)` | 700 | 1.02 | −0.035em | Hero/halaman login/landing (bila ada) |
+| `h1` | `clamp(2rem, 4vw, 3rem)` | 700 | 1.08 | −0.03em | Judul halaman |
 | `h2` | `clamp(1.5rem, 2.6vw, 2rem)` | 700 | 1.15 | −0.02em | Judul bagian |
 | `h3` | `1.25rem` (20 px) | 700 | 1.25 | −0.01em | Judul kartu/panel |
 | `h4` | `1.0625rem` (17 px) | 700 | 1.3 | −0.005em | Sub-judul |
@@ -256,7 +256,7 @@ Ukuran fluid dengan `clamp()` untuk judul; isi tetap statis. Line-height judul *
 | `label` | `0.875rem` (14 px) | 500 | 1.3 | 0.005em | Label form, nav, tombol |
 | `caption` | `0.75rem` (12 px) | 500 | 1.4 | 0.01em | Caption, penanda kecil (jangan di bawah 12 px) |
 | `overline` | `0.75rem` (12 px) | 700 | 1.2 | 0.08em, UPPERCASE | Penanda bagian di atas judul (mis. "PROCUREMENT"), pakai hemat |
-| `stat` | `clamp(2rem, 4vw, 3rem)` | 800 | 1.0 | −0.03em | Angka besar di dashboard |
+| `stat` | `clamp(2rem, 4vw, 3rem)` | 700 | 1.0 | −0.03em | Angka besar di dashboard |
 
 Aturan:
 
@@ -639,7 +639,7 @@ Target minimum **WCAG 2.2 AA**.
 | Pakai `Icon.svg`/`Text.svg` apa adanya, sesuai §2 | Menggambar ulang, mewarnai ulang, meregangkan, memberi efek, atau mengganti logo dengan teks/emoji/ikon generik |
 | Soft White sebagai latar dominan, Deep Blue untuk struktur & aksi utama | Memakai latar putih murni di mana-mana atau warna dominan baru (hijau, oranye, ungu, dll.) |
 | Satu sorotan merah muda per area pandang | Menaburkan merah muda di seluruh antarmuka; memakai merah muda untuk teks isi atau tombol utama |
-| Judul besar, rapat, bobot 800; isi 16 px lega | Judul kecil bertabrakan dengan isi; lebih dari 4 bobot font |
+| Judul besar, rapat, bobot 700 (bold); isi 16 px lega | Judul kecil bertabrakan dengan isi; lebih dari 4 bobot font |
 | Layout asimetris (7/5, 8/4) dengan banyak ruang | Susunan kartu sama-besar berulang tanpa fokus; layout padat |
 | Status AI terlihat: ikon + teks + warna | Menyembunyikan proses AI; status hanya berupa warna |
 | Gunakan istilah baku SUPPLIO.md §2 | Membuat sinonim ("Anggaran", "Stok minimum") |
@@ -711,7 +711,7 @@ Target minimum **WCAG 2.2 AA**.
 ```tsx
 <header className="relative overflow-clip rounded-3xl bg-[image:var(--grad-wash)] px-6 py-10 md:px-10">
   <p className="overline text-blue-700">PROCUREMENT</p>
-  <h1 className="mt-2 text-[clamp(2rem,4vw,3rem)] font-extrabold leading-[1.08] tracking-[-0.03em]">
+  <h1 className="mt-2 text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.08] tracking-[-0.03em]">
     Permintaan <span className="text-pink-500">penawaran</span>
   </h1>
   <p className="mt-3 max-w-[68ch] text-lg text-muted-foreground">
