@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title desc">
+  <title id="title">Supplio Signal Box mascot logo draft</title>
+  <desc id="desc">A three-quarter parcel mascot with one attentive flap, expressing supplier communication and readiness.</desc>
+  <g id="symbol">
+    <path fill="#FC90CB" d="M75 103L34 67C26 60 28 48 38 44L77 28C88 24 98 31 101 42L115 96Z"/>
+    <path fill="#0A2E8C" d="M40 106L153 87L194 110V197C194 213 181 226 165 226H68C50 226 36 212 36 194V120C36 114 37 110 40 106Z"/>
+    <path fill="#FC90CB" d="M153 87L220 105V191C220 200 216 207 209 212L181 231L181 118Z"/>
+    <path fill="#FDFBFE" d="M40 106L153 87L194 110L78 130Z"/>
+    <path fill="#FC90CB" d="M78 130L194 110L190 124L80 143L47 122Z"/>
+    <ellipse cx="91" cy="165" rx="13" ry="17" fill="#FDFBFE"/>
+    <ellipse cx="145" cy="155" rx="13" ry="17" fill="#FDFBFE"/>
+    <ellipse cx="88" cy="168" rx="5" ry="7" fill="#0A2E8C"/>
+    <ellipse cx="142" cy="158" rx="5" ry="7" fill="#0A2E8C"/>
+    <path fill="#FDFBFE" d="M108 192C114 194 121 193 126 190C125 198 122 201 117 202C112 202 109 199 108 192Z"/>
+  </g>
+</svg>

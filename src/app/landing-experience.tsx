@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Check, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import "./landing-page.css";
 
 const steps = [
@@ -92,21 +92,47 @@ function Capabilities() {
   return <section className="lp-section lp-capabilities" id="kemampuan"><div className="lp-wrap">
     <div className="lp-capabilities-heading"><h2>Yang perlu Anda lihat, ada di satu alur.</h2><p>Dari Inventory sampai Procurement, setiap status dan biaya bisa ditinjau sebelum Anda memutuskan.</p></div>
     <div className="lp-capability-grid">
-      <article className="lp-capability lp-capability-stock"><div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi.</h3><p>Inventory menunjukkan Current Stock (stok tersedia), Incoming Quantity (barang yang sedang datang), dan kebutuhan restock. Jika perlu, minta penawaran lebih awal secara manual.</p></div>
-        <div className="lp-stock-ui" data-ui aria-label="Contoh daftar stok, data simulasi"><div className="lp-ui-heading"><span>Inventory</span><small>Data simulasi</small></div><div className="lp-stock-row"><span><strong>Beras</strong><small>Inventory Position</small></span><strong>8 kg</strong><span className="lp-stock-warning">Perlu restock</span></div><div className="lp-stock-row"><span><strong>Minyak goreng</strong><small>Inventory Position</small></span><strong>16 liter</strong><span className="lp-stock-ok">Cukup</span></div><p>Reorder Point Beras: 10 kg</p></div>
+      <article className="lp-capability lp-capability-stock">
+        <div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi.</h3><p>Inventory memperlihatkan Current Stock, Incoming Quantity, dan kebutuhan restock dalam satu konteks. Anda juga dapat meminta penawaran lebih awal secara manual.</p></div>
+        <figure className="lp-capability-visual"><Image src="/images/capability-stock.png" alt="Beras, minyak, dan kemasan dalam baki stok dengan satu ruang kosong" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
       </article>
-      <article className="lp-capability lp-capability-telegram"><div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia.</h3><p>Bot Telegram Supplio menyebut identitas AI dengan jelas, meminta harga dan ketentuan, lalu menyimpan jawaban supplier sebagai Quotation.</p></div>
-        <div className="lp-chat-ui" data-ui aria-label="Contoh percakapan penawaran, data simulasi"><div className="lp-ui-heading"><span>Penawaran supplier</span><small>Data simulasi</small></div><div className="lp-chat-bubble lp-chat-ai"><strong>AI Supplio</strong><p>Apakah tersedia Beras 20 kg? Mohon harga, ongkir, dan perkiraan tiba.</p></div><div className="lp-chat-bubble lp-chat-supplier"><strong>Supplier A · manusia</strong><p>Tersedia 20 kg. Harga Rp 18.000/kg, ongkir Rp 20.000.</p></div><span className="lp-chat-status"><CircleCheck size={15} aria-hidden="true" /> Balasan supplier tercatat</span></div>
+      <article className="lp-capability lp-capability-telegram">
+        <div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia.</h3><p>Bot Telegram Supplio menyebut dirinya AI, meminta harga dan ketentuan kepada supplier manusia, lalu menyimpan balasannya sebagai Quotation.</p></div>
+        <figure className="lp-capability-visual"><Image src="/images/capability-supplier.png" alt="Supplier menulis penawaran untuk barang yang akan diisi ulang" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
       </article>
-      <article className="lp-capability lp-capability-choice"><div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian.</h3><p>Rekomendasi menghitung harga barang dan ongkir, lalu memeriksa Restock Budget, yaitu batas total biaya untuk satu permintaan. Jika tidak ada pilihan yang memenuhi batas, Supplio menjelaskannya.</p></div>
-        <div className="lp-choice-ui" data-ui aria-label="Contoh ringkasan rekomendasi, data simulasi"><span className="lp-choice-label">Rekomendasi · Data simulasi</span><strong className="lp-choice-total">Rp 380.000</strong><span>Harga barang + ongkir</span><div className="lp-choice-bottom"><span><Check size={16} aria-hidden="true" /> Sesuai Restock Budget</span><span>Menunggu Final Approval</span></div></div>
+      <article className="lp-capability lp-capability-choice">
+        <div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian.</h3><p>Rekomendasi membandingkan harga barang dan ongkir terhadap Restock Budget. Jika belum ada pilihan yang memenuhi batas, alasannya tetap terlihat.</p></div>
+        <figure className="lp-capability-visual"><Image src="/images/capability-budget.png" alt="Dua pilihan barang dan penawaran dibandingkan pada neraca" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
       </article>
     </div>
   </div></section>;
 }
 
 function OwnerControl() {
-  return <section className="lp-owner" id="kendali"><div className="lp-wrap lp-owner-grid"><div><h2>AI menyiapkan pilihan.<br />Anda yang <span>menyetujui.</span></h2><p>Supplio dapat meminta penawaran dan melakukan paling banyak satu counter-offer per supplier. Sistem tidak memesan atau menjanjikan pembayaran atas nama Anda.</p></div><div className="lp-owner-rule"><ShieldCheck size={34} strokeWidth={1.5} aria-hidden="true" /><strong>Final Approval</strong><p>Hanya pemilik yang dapat menyetujui pembelian. Setelah persetujuan itu, purchase order dibuat dan dikirim.</p></div></div></section>;
+  return (
+    <section className="lp-owner" id="kendali">
+      <div className="lp-wrap lp-owner-grid">
+        <div>
+          <h2>
+            AI menyiapkan pilihan.<br />Anda yang <span>menyetujui.</span>
+          </h2>
+          <p>
+            Supplio dapat meminta penawaran dan melakukan paling banyak satu counter-offer per supplier. Sistem tidak memesan atau menjanjikan pembayaran atas nama Anda.
+          </p>
+        </div>
+        <div className="lp-owner-visual">
+          <Image
+            src="/images/owner-decision-3d-v2.png"
+            alt="Dua pilihan barang restock dan token persetujuan yang masih dipegang pemilik"
+            width={1536}
+            height={1024}
+            sizes="(max-width: 767px) 100vw, 680px"
+            className="lp-owner-image"
+          />
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function TrustAndQuestions() {
