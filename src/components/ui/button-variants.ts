@@ -1,0 +1,38 @@
+import { cva } from "class-variance-authority"
+
+/** Gaya tombol; terpisah dari komponen client agar server component bisa memakainya untuk tautan bergaya tombol. */
+export const buttonVariants = cva(
+  "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all duration-150 outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-blue-800",
+        outline:
+          "border-line-strong bg-surface-raised text-foreground hover:bg-blue-50 aria-expanded:bg-blue-50",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-blue-100 aria-expanded:bg-blue-100",
+        ghost:
+          "text-muted-foreground hover:bg-blue-50 hover:text-foreground aria-expanded:bg-blue-50",
+        destructive:
+          "bg-danger-bg text-danger hover:bg-[color-mix(in_oklch,var(--danger-bg),var(--danger)_12%)] focus-visible:ring-destructive/20",
+        accent: "bg-pink-500 text-blue-950",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default:
+          "h-10 gap-2 px-4 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        xs: "h-7 gap-1 rounded-lg px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-8 gap-1 rounded-lg px-3 text-[0.8125rem] [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-12 gap-2 px-6 text-[0.9375rem]",
+        icon: "size-10",
+        "icon-xs": "size-7 rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-8 rounded-lg",
+        "icon-lg": "size-12",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)

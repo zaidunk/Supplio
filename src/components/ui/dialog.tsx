@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useJelly } from "@/components/motion/use-jelly";
 import { cn } from "@/lib/utils";
 import { iconProps } from "@/lib/ui/icons";
 
@@ -35,6 +36,8 @@ export function Dialog({
 }) {
   const titleId = useId();
   const element = useRef<HTMLDialogElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useJelly(closeButton, "icon");
   const { isOpen, close } = dialog;
 
   // Sinkronkan state ke <dialog> native; Esc menutup lewat event `close` yang mengembalikan state.
@@ -70,6 +73,7 @@ export function Dialog({
             {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
           <button
+            ref={closeButton}
             type="button"
             onClick={close}
             aria-label="Tutup"
