@@ -17,7 +17,7 @@ function Section({ title, description, children }: { title: string; description?
     <fieldset className="flex flex-col gap-3">
       <legend className="mb-1 text-sm font-medium">{title}</legend>
       {description ? <p className="-mt-1 text-xs text-muted-foreground">{description}</p> : null}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
+      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
     </fieldset>
   );
 }
@@ -117,7 +117,7 @@ export function ProductForm({ product }: Props) {
 
       <details className="rounded-xl border p-3">
         <summary className="cursor-pointer text-sm font-medium">Batas harga dan opsi lanjutan (opsional)</summary>
-        <div className="grid gap-3 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 pt-4 sm:grid-cols-2">
           <Field label="Maximum Unit Price (Rp)">
             <Input name="maximumUnitPrice" type="number" min={1} defaultValue={d?.maximumUnitPrice ?? ""} />
           </Field>

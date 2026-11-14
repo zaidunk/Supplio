@@ -20,14 +20,17 @@ export default async function LoginPage({
 
   return (
     <main className="grid flex-1 lg:grid-cols-[7fr_5fr]">
-      <section className="relative hidden overflow-clip bg-[image:var(--grad-wash)] lg:flex lg:flex-col lg:justify-center lg:gap-8 lg:px-16">
-        <Image src="/brand/icon.svg" alt="" width={96} height={92} priority />
-        <h1 className="max-w-[14ch] text-[clamp(2.5rem,4.5vw,4.5rem)] leading-[1.02] font-medium tracking-[-0.035em] text-blue-700">
-          Restock lebih <span className="text-pink-500">terkendali</span>
-        </h1>
-        <p className="max-w-[44ch] text-lg text-muted-foreground">
-          AI meminta dan membandingkan penawaran supplier. Pembelian baru terjadi setelah Anda menyetujuinya.
-        </p>
+      <section className="relative hidden overflow-clip bg-[image:var(--grad-wash)] lg:flex lg:flex-col lg:justify-between lg:px-16 lg:py-12">
+        <Image src="/brand/wordmark.svg" alt="Supplio" width={108} height={31} priority />
+        <Image src="/brand/icon.svg" alt="" width={192} height={185} className="self-center" priority />
+        <div className="flex flex-col gap-6">
+          <h1 className="max-w-[14ch] text-[clamp(2.5rem,4.5vw,4.5rem)] leading-[1.02] font-medium tracking-[-0.035em] text-blue-700">
+            Restock lebih <span className="text-pink-500">terkendali</span>
+          </h1>
+          <p className="max-w-[44ch] text-lg text-muted-foreground">
+            AI meminta dan membandingkan penawaran supplier. Pembelian baru terjadi setelah Anda menyetujuinya.
+          </p>
+        </div>
       </section>
 
       <section className="flex items-center justify-center p-6">

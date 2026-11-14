@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { FormMessage } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
+import { Dialog, useDialog } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/api-client";
 import { formatRupiah } from "@/lib/format";
 
@@ -29,18 +30,18 @@ export function ApprovalPanel(props: {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const key = useRef<string>(crypto.randomUUID());
-  const dialog = useRef<HTMLDialogElement>(null);
+  const dialog = useDialog();
 
   const done = () => startTransition(() => router.refresh());
 
   function open(next: Mode) {
     setMode(next);
     setReason("");
-    dialog.current?.showModal();
+    dialog.open();
   }
 
   function close() {
-    dialog.current?.close();
+    dialog.close();
     setMode(null);
   }
 
@@ -93,24 +94,23 @@ export function ApprovalPanel(props: {
       </div>
       <FormMessage error={error} info={info} />
 
-      <dialog
-        ref={dialog}
+      <Dialog
+        dialog={dialog}
         onClose={() => setMode(null)}
-        aria-labelledby="approval-dialog-title"
-        className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-2xl border border-line bg-surface-raised p-0 text-foreground shadow-xl backdrop:bg-blue-950/40"
+        title={
+          mode === "approve"
+            ? `Setujui pembelian ${formatRupiah(props.totalCost)}?`
+            : "Tolak rekomendasi dan batalkan request?"
+        }
+        description={
+          mode === "approve"
+            ? "Purchase order dibuat per supplier dan konfirmasi pesanan dikirim lewat Telegram. Stok baru bertambah saat barang diterima."
+            : "Tidak ada pesanan yang dibuat. Tindakan ini tidak bisa diurungkan."
+        }
       >
         {mode === "approve" ? (
-          <div className="flex flex-col gap-5 p-6">
-            <div className="flex flex-col gap-1">
-              <h2 id="approval-dialog-title" className="text-lg font-medium">
-                Setujui pembelian {formatRupiah(props.totalCost)}?
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Purchase order dibuat per supplier dan konfirmasi pesanan dikirim lewat Telegram. Stok baru bertambah saat
-                barang diterima.
-              </p>
-            </div>
-            <ul className="flex flex-col divide-y rounded-xl border text-sm">
+          <>
+            <ul className="flex flex-col divide-y overflow-hidden rounded-xl border text-sm">
               {props.suppliers.map((s) => (
                 <li key={s.supplierName} className="flex items-center justify-between gap-3 px-3 py-2">
                   <span>
@@ -133,24 +133,18 @@ export function ApprovalPanel(props: {
                 Ya, setujui
               </Button>
             </div>
-          </div>
+          </>
         ) : null}
         {mode === "reject" ? (
-          <div className="flex flex-col gap-5 p-6">
-            <div className="flex flex-col gap-1">
-              <h2 id="approval-dialog-title" className="text-lg font-medium">
-                Tolak rekomendasi dan batalkan request?
-              </h2>
-              <p className="text-sm text-muted-foreground">Tidak ada pesanan yang dibuat. Tindakan ini tidak bisa diurungkan.</p>
-            </div>
+          <>
             <label className="flex flex-col gap-1.5 text-sm">
-              <span className="font-medium leading-none">Alasan (opsional)</span>
+              <span className="font-medium leading-5">Alasan (opsional)</span>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 maxLength={300}
                 rows={3}
-                className="w-full rounded-xl border border-input bg-surface-raised px-3.5 py-2 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/25 md:text-sm"
+                className="w-full rounded-xl border border-input bg-surface-raised px-3 py-2 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/25 md:text-sm"
               />
             </label>
             <div className="flex flex-wrap justify-end gap-3">
@@ -161,9 +155,9 @@ export function ApprovalPanel(props: {
                 Tolak dan batalkan
               </Button>
             </div>
-          </div>
+          </>
         ) : null}
-      </dialog>
+      </Dialog>
     </div>
   );
 }

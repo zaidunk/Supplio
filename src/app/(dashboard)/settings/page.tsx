@@ -14,9 +14,10 @@ export default async function SettingsPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Pengaturan" />
 
+      <div className="grid items-start gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
           <CardTitle>Procurement</CardTitle>
@@ -42,6 +43,7 @@ export default async function SettingsPage() {
           />
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

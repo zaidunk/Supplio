@@ -91,7 +91,7 @@ export function RequestQuotePanel({ rows }: { rows: Row[] }) {
     }
   }
 
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">Belum ada produk. Tambahkan produk di bagian “Tambah produk” di bawah.</p>;
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">Belum ada produk. Tambahkan produk lewat tombol “Tambah produk”.</p>;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">

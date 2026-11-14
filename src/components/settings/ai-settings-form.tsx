@@ -50,7 +50,7 @@ export function AiSettingsForm(props: {
           defaultValue={props.customInstructions}
           maxLength={1000}
           rows={5}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="w-full rounded-xl border border-input bg-surface-raised px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/25"
         />
       </Field>
       <FormMessage error={error} info={info} />

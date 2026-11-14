@@ -1,6 +1,7 @@
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
-import { ReceiptForm } from "@/components/procurement/receipt-form";
+import { ReceiptButton } from "@/components/procurement/receipt-form";
+import { StatCard } from "@/components/stat-card";
 import { PoStatusBadge } from "@/components/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,12 +15,19 @@ export default async function ReceivingPage() {
   const all = await listPurchaseOrders(prisma, business.id);
   const outstanding = all.filter((p) => p.status === "CREATED" || p.status === "SENT" || p.status === "PARTIALLY_RECEIVED");
   const history = all.filter((p) => !outstanding.includes(p));
+  const waiting = all.filter((p) => p.status === "CREATED" || p.status === "SENT").length;
+  const partial = all.filter((p) => p.status === "PARTIALLY_RECEIVED").length;
+  const received = all.filter((p) => p.status === "RECEIVED").length;
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Penerimaan"
-      />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Penerimaan" />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-6">
+        <StatCard label="Menunggu barang" value={waiting} />
+        <StatCard label="Diterima sebagian" value={partial} />
+        <StatCard label="Selesai diterima" value={received} />
+      </div>
 
       {outstanding.length === 0 ? (
         <Card>
@@ -65,7 +73,7 @@ export default async function ReceivingPage() {
                 </TableBody>
               </Table>
             </div>
-            <ReceiptForm purchaseOrderId={po.id} items={po.items.map((i) => ({ productId: i.productId, productName: i.productName, unit: i.unit, outstanding: i.outstanding }))} />
+            <ReceiptButton purchaseOrderId={po.id} items={po.items.map((i) => ({ productId: i.productId, productName: i.productName, unit: i.unit, outstanding: i.outstanding }))} />
             {po.receipts.length > 0 ? (
               <details className="text-sm">
                 <summary className="cursor-pointer text-muted-foreground">Riwayat penerimaan ({po.receipts.length})</summary>

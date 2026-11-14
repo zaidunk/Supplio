@@ -41,22 +41,21 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
   const rec = request.recommendation;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Procurement request"
-          back={{ href: "/procurement", label: "← Semua request" }}
-          badge={<RequestStatusBadge status={request.status} />}
-          meta={
-            <>
-              Dibuat {formatDateTime(request.createdAt)} · Restock Budget {formatRupiah(request.restockBudget)} (snapshot) ·
-              Pengaturan AI v{request.aiSettingsVersion}
-              {request.expiresAt ? ` · Kedaluwarsa ${formatDateTime(request.expiresAt)}` : ""}
-            </>
-          }
-        />
-        <ProgressStepper status={request.status} />
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Procurement request"
+        back={{ href: "/procurement", label: "Semua request" }}
+        badge={<RequestStatusBadge status={request.status} />}
+        meta={
+          <>
+            Dibuat {formatDateTime(request.createdAt)} · Restock Budget {formatRupiah(request.restockBudget)} (snapshot) ·
+            Pengaturan AI v{request.aiSettingsVersion}
+            {request.expiresAt ? ` · Kedaluwarsa ${formatDateTime(request.expiresAt)}` : ""}
+          </>
+        }
+      />
+
+      <ProgressStepper status={request.status} />
 
       {rec ? (
         <Card className={request.status === "AWAITING_APPROVAL" ? "border-blue-300" : undefined}>
@@ -145,7 +144,7 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
       ) : null}
 
       {request.status === "DRAFT" && request.sessions.length === 0 ? (
-        <Card className="border-amber-500/50">
+        <Card className="border-warning/40">
           <CardContent className="py-4 text-sm">
             <strong>Menunggu supplier terhubung.</strong> Belum ada supplier yang menyuplai barang ini dan sudah terhubung ke
             Telegram. Hubungkan supplier di <Link href="/suppliers" className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">halaman Supplier</Link>; permintaan

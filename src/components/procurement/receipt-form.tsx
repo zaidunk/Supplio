@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { FormMessage } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
+import { Dialog, useDialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/api-client";
 import { formatQty } from "@/lib/format";
@@ -80,22 +81,21 @@ export function ReceiptForm({ purchaseOrderId, items }: { purchaseOrderId: strin
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 rounded-md border p-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">Catat penerimaan</p>
-        {open.length > 1 ? (
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      {open.length > 1 ? (
+        <div>
           <Button type="button" variant="outline" size="sm" onClick={receiveAll}>
             Terima semua barang
           </Button>
-        ) : null}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        </div>
+      ) : null}
+      <div className="grid gap-4">
         {open.map((i) => {
           const err = errors[i.productId];
           const errorId = `receipt-${purchaseOrderId}-${i.productId}-error`;
           return (
             <label key={i.productId} className="flex flex-col gap-1.5 text-sm">
-              <span className="font-medium leading-none">
+              <span className="font-medium leading-5">
                 {i.productName} <span className="font-normal text-muted-foreground">(sisa {formatQty(i.outstanding)} {i.unit})</span>
               </span>
               <div className="flex gap-2">
@@ -127,5 +127,23 @@ export function ReceiptForm({ purchaseOrderId, items }: { purchaseOrderId: strin
         </Button>
       </div>
     </form>
+  );
+}
+
+/** Tombol "Catat penerimaan" (kiri bawah kartu PO) yang membuka ReceiptForm dalam dialog. */
+export function ReceiptButton({ purchaseOrderId, items }: { purchaseOrderId: string; items: ReceiptItem[] }) {
+  const dialog = useDialog();
+  if (items.every((i) => Number(i.outstanding) <= 0)) return null;
+  return (
+    <>
+      <div>
+        <Button type="button" onClick={dialog.open}>
+          Catat penerimaan
+        </Button>
+      </div>
+      <Dialog dialog={dialog} title="Catat penerimaan" description="Isi jumlah barang yang benar-benar diterima.">
+        <ReceiptForm purchaseOrderId={purchaseOrderId} items={items} />
+      </Dialog>
+    </>
   );
 }

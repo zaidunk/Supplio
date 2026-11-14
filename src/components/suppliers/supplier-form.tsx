@@ -98,7 +98,7 @@ export function SupplierForm({ products, supplierId }: { products: ProductOption
       ) : null}
 
       {rows.map((r) => (
-        <div key={r.key} className="grid gap-3 rounded-md border p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div key={r.key} className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2">
           <Field label="Produk">
             <NativeSelect value={r.productId} onChange={(e) => update(r.key, { productId: e.target.value })} required>
               <option value="" disabled>

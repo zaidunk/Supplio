@@ -1,6 +1,8 @@
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
-import { SupplierForm } from "@/components/suppliers/supplier-form";
+import { StatCard } from "@/components/stat-card";
+import { SupplierStatusBadge } from "@/components/status-badge";
+import { AddSupplierButton, SupplierProductsButton } from "@/components/suppliers/supplier-dialogs";
 import { RemoveProductButton, ToggleActiveButton } from "@/components/suppliers/supplier-actions";
 import { TelegramLinkButton } from "@/components/suppliers/telegram-link-button";
 import { Badge } from "@/components/ui/badge";
@@ -11,29 +13,40 @@ import { prisma } from "@/lib/db/prisma";
 import { formatDateTime, formatQty, formatRupiah } from "@/lib/format";
 import { listSuppliers } from "@/lib/suppliers/service";
 
-export default async function SuppliersPage() {
+export default async function SuppliersPage({ searchParams }: { searchParams: Promise<{ dialog?: string }> }) {
   const business = await requireBusiness();
-  const [suppliers, products] = await Promise.all([
+  const [suppliers, products, { dialog }] = await Promise.all([
     listSuppliers(prisma, business.id),
     prisma.product.findMany({
       where: { businessId: business.id },
       orderBy: { name: "asc" },
       select: { id: true, name: true, unit: true },
     }),
+    searchParams,
   ]);
+  const active = suppliers.filter((s) => s.isActive).length;
+  const connected = suppliers.filter((s) => s.telegramConnected).length;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Supplier"
+        actions={<AddSupplierButton key={dialog ?? ""} products={products} initialOpen={dialog === "tambah-supplier"} />}
       />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        <StatCard label="Total supplier" value={suppliers.length} />
+        <StatCard label="Supplier aktif" value={active} />
+        <StatCard label="Telegram terhubung" value={connected} />
+        <StatCard label="Belum terhubung" value={suppliers.length - connected} />
+      </div>
 
       {suppliers.length === 0 ? (
         <Card>
           <CardContent>
             <EmptyState
               title="Belum ada supplier"
-              action={{ href: "#tambah-supplier", label: "Tambah supplier" }}
+              action={{ href: "/suppliers?dialog=tambah-supplier", label: "Tambah supplier" }}
             />
           </CardContent>
         </Card>
@@ -45,9 +58,9 @@ export default async function SuppliersPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{s.name}</CardTitle>
-                <Badge variant={s.isActive ? "success" : "outline"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge>
+                <SupplierStatusBadge kind={s.isActive ? "active" : "inactive"}>{s.isActive ? "Aktif" : "Nonaktif"}</SupplierStatusBadge>
                 {s.telegramConnected ? (
-                  <Badge variant="success">Telegram terhubung ({formatDateTime(s.telegramVerifiedAt!)})</Badge>
+                  <SupplierStatusBadge kind="telegramConnected">Telegram terhubung ({formatDateTime(s.telegramVerifiedAt!)})</SupplierStatusBadge>
                 ) : null}
                 <span className="text-sm text-muted-foreground">{s.products.length} produk</span>
               </div>
@@ -89,7 +102,7 @@ export default async function SuppliersPage() {
                     {s.products.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={9} className="text-center text-muted-foreground">
-                          Belum ada produk. Tambahkan lewat “Tambah atau ubah produk supplier” di bawah.
+                          Belum ada produk. Tambahkan lewat tombol “Tambah atau ubah produk supplier”.
                         </TableCell>
                       </TableRow>
                     ) : null}
@@ -118,24 +131,12 @@ export default async function SuppliersPage() {
                 </Table>
               </div>
             </details>
-            <details className="rounded-md border p-3">
-              <summary className="cursor-pointer text-sm font-medium">Tambah atau ubah produk supplier</summary>
-              <div className="pt-4">
-                <SupplierForm products={products} supplierId={s.id} />
-              </div>
-            </details>
+            <div>
+              <SupplierProductsButton products={products} supplierId={s.id} supplierName={s.name} />
+            </div>
           </CardContent>
         </Card>
       ))}
-
-      <Card id="tambah-supplier" className="scroll-mt-24">
-        <CardHeader>
-          <CardTitle>Tambah supplier</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SupplierForm products={products} />
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
-import { RequestStatusBadge } from "@/components/status-badge";
-import { Badge } from "@/components/ui/badge";
+import { ProductStatusBadge, RequestStatusBadge } from "@/components/status-badge";
+import { StatCard } from "@/components/stat-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { formatDateTime } from "@/lib/format";
@@ -12,46 +12,6 @@ import { listPurchaseOrders } from "@/lib/procurement/receiving";
 import { getInventoryOverview } from "@/lib/inventory/overview";
 import { isSourcingActive } from "@/lib/procurement/lifecycle";
 import { listRequests } from "@/lib/procurement/queries";
-
-function Stat({
-  label,
-  value,
-  href,
-  featured = false,
-}: {
-  label: string;
-  value: string | number;
-  href: string;
-  featured?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={featured ? "sm:col-span-2 lg:col-span-2" : undefined}
-    >
-      <Card
-        className={
-          featured
-            ? "h-full border-transparent bg-[image:var(--grad-blue)] text-white shadow-md transition-transform hover:-translate-y-0.5"
-            : "h-full transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm"
-        }
-      >
-        <CardHeader className="gap-2">
-          <CardTitle
-            className={
-              featured
-                ? "text-[clamp(2.5rem,5vw,3.5rem)] leading-none font-medium tracking-[-0.03em] tabular-nums"
-                : "text-2xl leading-none font-medium tracking-[-0.02em] tabular-nums xl:text-3xl"
-            }
-          >
-            {value}
-          </CardTitle>
-          <CardDescription className={featured ? "text-base text-blue-100" : "text-sm"}>{label}</CardDescription>
-        </CardHeader>
-      </Card>
-    </Link>
-  );
-}
 
 export default async function DashboardPage() {
   const business = await requireBusiness();
@@ -69,35 +29,44 @@ export default async function DashboardPage() {
   const awaitingApproval = requests.filter((r) => r.status === "AWAITING_APPROVAL");
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <PageHeader
         title="Dashboard"
         actions={
-          <Link href="/inventory#minta-penawaran" className={buttonVariants({ variant: "outline" })}>
+          <Link href="/inventory?dialog=minta-penawaran" className={buttonVariants({ variant: "outline" })}>
             Minta penawaran manual
           </Link>
         }
       />
 
-      {awaitingApproval.length > 0 ? (
-        <Card className="border-blue-300 bg-blue-50/60">
-          <CardHeader>
-            <CardTitle>Menunggu keputusan Anda</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {awaitingApproval.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
-                <span>
-                  {r.itemCount} barang, dibuat {formatDateTime(r.createdAt)}
-                </span>
-                <Link href={`/procurement/${r.id}`} className={buttonVariants()}>
-                  Tinjau dan putuskan
-                </Link>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <StatCard
+          featured
+          className={awaitingApproval.length === 0 ? "lg:col-span-2" : undefined}
+          label="Rekomendasi menunggu persetujuan Anda"
+          value={awaitingApproval.length}
+          href={awaitingApproval.length === 1 ? `/procurement/${awaitingApproval[0].id}` : "/procurement"}
+        />
+        {awaitingApproval.length > 0 ? (
+          <Card className="h-full border-blue-300 bg-blue-50/60">
+            <CardHeader>
+              <CardTitle>Menunggu keputusan Anda</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {awaitingApproval.map((r) => (
+                <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <span>
+                    {r.itemCount} barang, dibuat {formatDateTime(r.createdAt)}
+                  </span>
+                  <Link href={`/procurement/${r.id}`} className={buttonVariants()}>
+                    Tinjau dan putuskan
+                  </Link>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
+      </div>
 
       {settings.defaultRestockBudget <= 0 ? (
         <Card className="border-danger/30 bg-danger-bg">
@@ -108,58 +77,54 @@ export default async function DashboardPage() {
         </Card>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-        <Stat
-          featured
-          label="Rekomendasi menunggu persetujuan Anda"
-          value={awaitingApproval.length}
-          href={awaitingApproval.length === 1 ? `/procurement/${awaitingApproval[0].id}` : "/procurement"}
-        />
-        <Stat label="Barang perlu restock" value={needRestock.length} href="/inventory" />
-        <Stat label="Procurement request aktif" value={active.length} href="/procurement" />
-        <Stat label="Purchase order menunggu penerimaan" value={openOrders.length} href="/receiving" />
-        <Stat label="Barang berisiko stockout" value={atRisk.length} href="/inventory" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        <StatCard label="Barang perlu restock" value={needRestock.length} href="/inventory" />
+        <StatCard label="Procurement request aktif" value={active.length} href="/procurement" />
+        <StatCard label="Purchase order menunggu penerimaan" value={openOrders.length} href="/receiving" />
+        <StatCard label="Barang berisiko stockout" value={atRisk.length} href="/inventory" />
       </div>
 
-      {incomplete.length > 0 ? (
-        <Card>
+      <div className="grid items-stretch gap-6 lg:grid-cols-2">
+        {incomplete.length > 0 ? (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>Konfigurasi belum lengkap</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {incomplete.map((r) => (
+                <ProductStatusBadge key={r.id} kind="incomplete">
+                  {r.name}
+                </ProductStatusBadge>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card className={incomplete.length === 0 ? "h-full lg:col-span-2" : "h-full"}>
           <CardHeader>
-            <CardTitle>Konfigurasi belum lengkap</CardTitle>
+            <CardTitle>Procurement request terbaru</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {incomplete.map((r) => (
-              <Badge key={r.id} variant="destructive">
-                {r.name}
-              </Badge>
-            ))}
+          <CardContent>
+            {requests.length === 0 ? (
+              <EmptyState
+                title="Belum ada procurement request"
+                action={{ href: "/inventory", label: "Lihat Inventory" }}
+              />
+            ) : (
+              <ul className="flex flex-col gap-2 text-sm">
+                {requests.slice(0, 5).map((r) => (
+                  <li key={r.id} className="flex items-center gap-3">
+                    <RequestStatusBadge status={r.status} />
+                    <Link href={`/procurement/${r.id}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
+                      {r.itemCount} barang, dibuat {formatDateTime(r.createdAt)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </CardContent>
         </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Procurement request terbaru</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {requests.length === 0 ? (
-            <EmptyState
-              title="Belum ada procurement request"
-              action={{ href: "/inventory", label: "Lihat Inventory" }}
-            />
-          ) : (
-            <ul className="flex flex-col gap-2 text-sm">
-              {requests.slice(0, 5).map((r) => (
-                <li key={r.id} className="flex items-center gap-3">
-                  <RequestStatusBadge status={r.status} />
-                  <Link href={`/procurement/${r.id}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                    {r.itemCount} barang, dibuat {formatDateTime(r.createdAt)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

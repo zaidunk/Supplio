@@ -5,20 +5,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { formatDateTime, formatRupiah } from "@/lib/format";
+import { isSourcingActive } from "@/lib/procurement/lifecycle";
 import { listRequests } from "@/lib/procurement/queries";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
+import { StatCard } from "@/components/stat-card";
 import { RequestStatusBadge } from "@/components/status-badge";
 
 export default async function ProcurementPage() {
   const business = await requireBusiness();
   const requests = await listRequests(prisma, business.id);
+  const running = requests.filter((r) => isSourcingActive(r.status) && r.status !== "AWAITING_APPROVAL").length;
+  const awaiting = requests.filter((r) => r.status === "AWAITING_APPROVAL").length;
+  const completed = requests.filter((r) => r.status === "COMPLETED").length;
+  const stopped = requests.filter((r) => ["NO_FEASIBLE_SOLUTION", "CANCELLED", "EXPIRED"].includes(r.status)).length;
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Procurement"
-      />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Procurement" />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        <StatCard label="Sedang berjalan" value={running} />
+        <StatCard label="Menunggu keputusan Anda" value={awaiting} />
+        <StatCard label="Selesai" value={completed} />
+        <StatCard label="Tidak berlanjut" value={stopped} />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Procurement request</CardTitle>
@@ -41,7 +52,7 @@ export default async function ProcurementPage() {
                   <TableCell colSpan={6} className="whitespace-normal">
                     <EmptyState
                       title="Belum ada procurement request"
-                      action={{ href: "/inventory#minta-penawaran", label: "Minta penawaran manual" }}
+                      action={{ href: "/inventory?dialog=minta-penawaran", label: "Minta penawaran manual" }}
                     />
                   </TableCell>
                 </TableRow>

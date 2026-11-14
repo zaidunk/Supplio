@@ -1,11 +1,10 @@
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Term } from "@/components/term";
-import { DeleteProductButton } from "@/components/inventory/delete-product-button";
-import { MovementForm } from "@/components/inventory/movement-form";
-import { ProductForm } from "@/components/inventory/product-form";
-import { RequestQuotePanel } from "@/components/inventory/request-quote-panel";
-import { Badge } from "@/components/ui/badge";
+import { InventoryActions, type InventoryDialogName } from "@/components/inventory/inventory-actions";
+import { ProductRowActions } from "@/components/inventory/product-row-actions";
+import { ProductStatusBadge } from "@/components/status-badge";
+import { StatCard } from "@/components/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireBusiness } from "@/lib/auth/current-business";
@@ -24,31 +23,46 @@ function StatusBadges({ row }: { row: InventoryRow }) {
   return (
     <div className="flex flex-col items-start gap-1">
       {row.configurationMissing.length > 0 ? (
-        <Badge variant="destructive">Lengkapi: {row.configurationMissing.map((m) => MISSING_LABEL[m]).join(", ")}</Badge>
+        <ProductStatusBadge kind="incomplete">Lengkapi: {row.configurationMissing.map((m) => MISSING_LABEL[m]).join(", ")}</ProductStatusBadge>
       ) : row.inActiveRequest ? (
-        <Badge variant="secondary">Sedang diproses</Badge>
+        <ProductStatusBadge kind="processing">Sedang diproses</ProductStatusBadge>
       ) : row.triggerRestock ? (
-        <Badge>Perlu restock</Badge>
+        <ProductStatusBadge kind="restock">Perlu restock</ProductStatusBadge>
       ) : (
-        <Badge variant="outline">Aman</Badge>
+        <ProductStatusBadge kind="safe">Aman</ProductStatusBadge>
       )}
       {row.triggerRestock && row.activeSupplierCount === 0 ? (
-        <Badge variant="destructive">Belum ada supplier aktif</Badge>
+        <ProductStatusBadge kind="stockout">Belum ada supplier aktif</ProductStatusBadge>
       ) : null}
-      {row.stockoutRisk ? <Badge variant="destructive">Risiko stockout (stok cukup ~{formatQty(row.daysOfCover)} hari)</Badge> : null}
+      {row.stockoutRisk ? (
+        <ProductStatusBadge kind="stockout">Risiko stockout (stok cukup ~{formatQty(row.daysOfCover)} hari)</ProductStatusBadge>
+      ) : null}
     </div>
   );
 }
 
-export default async function InventoryPage() {
+const DIALOGS: InventoryDialogName[] = ["catat-mutasi", "minta-penawaran", "tambah-produk"];
+
+export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ dialog?: string }> }) {
   const business = await requireBusiness();
-  const rows = await getInventoryOverview(prisma, business.id);
+  const [rows, { dialog }] = await Promise.all([getInventoryOverview(prisma, business.id), searchParams]);
+  const initial = DIALOGS.find((d) => d === dialog);
+
+  // Angka kartu dihitung dari baris yang sama dengan tabel (definisi "perlu restock" sama dengan Dashboard).
+  const needRestock = rows.filter((r) => r.triggerRestock && !r.inActiveRequest).length;
+  const processing = rows.filter((r) => r.inActiveRequest).length;
+  const incomplete = rows.filter((r) => r.configurationMissing.length > 0).length;
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Inventory"
-      />
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Inventory" actions={<InventoryActions key={initial ?? ""} rows={rows} initial={initial} />} />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+        <StatCard label="Total produk" value={rows.length} />
+        <StatCard label="Perlu restock" value={needRestock} />
+        <StatCard label="Sedang diproses" value={processing} />
+        <StatCard label="Konfigurasi belum lengkap" value={incomplete} />
+      </div>
 
       <Card>
         <CardHeader>
@@ -89,7 +103,7 @@ export default async function InventoryPage() {
                   <TableCell colSpan={11} className="whitespace-normal">
                     <EmptyState
                       title="Belum ada produk"
-                      action={{ href: "#tambah-produk", label: "Tambah produk" }}
+                      action={{ href: "/inventory?dialog=tambah-produk", label: "Tambah produk" }}
                     />
                   </TableCell>
                 </TableRow>
@@ -111,7 +125,7 @@ export default async function InventoryPage() {
                     <StatusBadges row={r} />
                   </TableCell>
                   <TableCell>
-                    <DeleteProductButton id={r.id} name={r.name} />
+                    <ProductRowActions product={r} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -119,51 +133,6 @@ export default async function InventoryPage() {
           </Table>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Catat mutasi stok</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MovementForm products={rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit }))} />
-        </CardContent>
-      </Card>
-
-      <Card id="minta-penawaran" className="scroll-mt-24">
-        <CardHeader>
-          <CardTitle>Minta penawaran manual</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RequestQuotePanel rows={rows} />
-        </CardContent>
-      </Card>
-
-      <Card id="tambah-produk" className="scroll-mt-24">
-        <CardHeader>
-          <CardTitle>Tambah produk</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductForm />
-        </CardContent>
-      </Card>
-
-      {rows.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Ubah konfigurasi produk</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {rows.map((r) => (
-              <details key={r.id} className="rounded-md border p-3">
-                <summary className="cursor-pointer text-sm font-medium">{r.name}</summary>
-                <div className="pt-4">
-                  <ProductForm product={r} />
-                </div>
-              </details>
-            ))}
-          </CardContent>
-        </Card>
-      ) : null}
     </div>
   );
 }

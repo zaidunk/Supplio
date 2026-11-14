@@ -1,4 +1,7 @@
 import type { ProcurementStatus } from "@/generated/prisma/enums";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, X } from "lucide-react";
+import { iconProps } from "@/lib/ui/icons";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["Cari penawaran", "Hitung kombinasi", "Persetujuan", "Pesanan", "Penerimaan"];
@@ -35,26 +38,37 @@ export function ProgressStepper({ status }: { status: ProcurementStatus }) {
   if (!step) return null;
 
   return (
-    <ol aria-label="Progres procurement request" className="grid grid-cols-5 gap-2">
+    <Card>
+      <CardContent>
+    <ol aria-label="Progres procurement request" className="grid grid-cols-5">
       {STEPS.map((label, i) => {
         const done = i < step.index;
         const current = i === step.index;
+        const failed = current && step.failed;
         return (
-          <li key={label} aria-current={current ? "step" : undefined} className="flex flex-col gap-2">
+          <li key={label} aria-current={current ? "step" : undefined} className="relative flex flex-col items-center gap-2 text-center">
+            {i > 0 ? (
+              <span
+                aria-hidden="true"
+                className={cn("absolute top-4 right-1/2 h-0.5 w-full -translate-y-1/2", i <= step.index ? "bg-success" : "bg-line")}
+              />
+            ) : null}
             <span
               className={cn(
-                "h-1.5 rounded-full",
-                done && "bg-success",
-                current && !step.failed && "bg-primary",
-                current && step.failed && "bg-danger",
-                !done && !current && "bg-line",
+                "relative z-10 flex size-8 items-center justify-center rounded-full border-2 text-sm font-medium tabular-nums",
+                done && "border-success bg-success text-white",
+                current && !failed && "border-primary bg-surface-raised text-primary",
+                failed && "border-danger bg-danger-bg text-danger",
+                !done && !current && "border-line bg-surface-raised text-ink-subtle",
               )}
-            />
+            >
+              {done ? <Check {...iconProps} /> : failed ? <X {...iconProps} /> : i + 1}
+            </span>
             <span
               className={cn(
-                "text-xs leading-tight sm:text-sm",
+                "min-w-0 px-0.5 text-[11px] leading-tight break-words sm:px-0 sm:text-sm",
                 current ? "font-medium text-foreground" : "text-muted-foreground",
-                current && step.failed && "text-danger",
+                failed && "text-danger",
               )}
             >
               <span className="sr-only">{done ? "Selesai: " : current ? "Sedang berjalan: " : "Belum: "}</span>
@@ -64,5 +78,7 @@ export function ProgressStepper({ status }: { status: ProcurementStatus }) {
         );
       })}
     </ol>
+      </CardContent>
+    </Card>
   );
 }

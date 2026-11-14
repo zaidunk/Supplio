@@ -49,7 +49,7 @@ export function MovementForm({ products }: { products: ProductOption[] }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
       <Field label="Produk">
         <NativeSelect name="productId" required defaultValue="">
           <option value="" disabled>
@@ -75,12 +75,12 @@ export function MovementForm({ products }: { products: ProductOption[] }) {
       <Field label="Catatan (opsional)">
         <Input name="note" maxLength={300} />
       </Field>
-      <div className="flex items-end">
+      <div className="flex items-end sm:col-span-2">
         <Button type="submit" disabled={pending || products.length === 0}>
           Catat mutasi
         </Button>
       </div>
-      <div className="sm:col-span-2 lg:col-span-5">
+      <div className="sm:col-span-2">
         <FormMessage error={error} info={info} />
       </div>
     </form>
