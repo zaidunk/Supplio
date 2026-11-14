@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, SlidersHorizontal } from "lucide-react";
+import AnimatedContent from "@/components/AnimatedContent";
 import "./landing-page.css";
 
 const steps = [
@@ -32,18 +33,36 @@ function Header() {
 }
 
 function Hero() {
-  return <section className="lp-hero" id="beranda"><div className="lp-wrap lp-hero-inner">
-    <div className="lp-hero-copy">
-      <h1>Restock UMKM, keputusan tetap <span>Anda.</span></h1>
-      <p>Supplio memantau stok, meminta penawaran supplier manusia lewat Telegram, lalu menyiapkan pilihan pembelian. Anda yang menyetujui.</p>
-      <div className="lp-hero-actions"><ActionLink /><a className="lp-text-link" href="#cara-kerja">Lihat cara kerja <ArrowRight size={18} aria-hidden="true" /></a></div>
-    </div>
+  const resetHeroMotion = (element: HTMLElement) => {
+    element.style.setProperty("--hero-tilt-x", "0deg");
+    element.style.setProperty("--hero-tilt-y", "0deg");
+    element.style.setProperty("--hero-pan-x", "0px");
+    element.style.setProperty("--hero-pan-y", "0px");
+  };
+
+  return <section className="lp-hero" id="beranda" onPointerMove={(event) => {
+    if (window.matchMedia("(pointer: coarse)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    event.currentTarget.style.setProperty("--hero-tilt-x", `${((0.5 - y) * 1.4).toFixed(2)}deg`);
+    event.currentTarget.style.setProperty("--hero-tilt-y", `${((x - 0.5) * 1.8).toFixed(2)}deg`);
+    event.currentTarget.style.setProperty("--hero-pan-x", `${((x - 0.5) * 5).toFixed(2)}px`);
+    event.currentTarget.style.setProperty("--hero-pan-y", `${((y - 0.5) * 4).toFixed(2)}px`);
+  }} onPointerLeave={(event) => resetHeroMotion(event.currentTarget)}>
     <figure className="lp-hero-art">
-      <Image className="lp-hero-scene" src="/images/hero-restock-world.png" alt="Ilustrasi warung UMKM dengan stok beras, minyak, dan barang yang baru diantar" width={1536} height={1024} sizes="(max-width: 767px) 100vw, (max-width: 1200px) 55vw, 720px" priority />
-      <Image className="lp-hero-plane" src="/images/hero-paper-plane.png" alt="" width={1536} height={1024} sizes="150px" aria-hidden="true" />
-      <Image className="lp-hero-parcel" src="/images/hero-floating-parcel.png" alt="" width={1312} height={1199} sizes="150px" aria-hidden="true" unoptimized />
+      <div className="lp-hero-image-shell">
+        <Image className="lp-hero-scene" src="/landing/assets/photos/hero-inventory-pexels.jpg" alt="Pekerja memeriksa persediaan barang di antara rak inventori" width={1920} height={1280} sizes="100vw" priority />
+      </div>
     </figure>
-  </div></section>;
+    <div className="lp-wrap lp-hero-inner">
+      <div className="lp-hero-copy">
+        <h1>Restock UMKM, keputusan tetap <span>Anda.</span></h1>
+        <p>Supplio memantau stok, meminta penawaran supplier manusia lewat Telegram, lalu menyiapkan pilihan pembelian. Anda yang menyetujui.</p>
+        <div className="lp-hero-actions"><ActionLink /><a className="lp-text-link" href="#cara-kerja">Lihat cara kerja <ArrowRight size={18} aria-hidden="true" /></a></div>
+      </div>
+    </div>
+  </section>;
 }
 
 function Workflow() {
@@ -72,21 +91,24 @@ function Workflow() {
 
 function Capabilities() {
   return <section className="lp-section lp-capabilities" id="kemampuan"><div className="lp-wrap">
-    <div className="lp-capabilities-heading"><h2>Yang perlu Anda lihat, ada di satu alur.</h2><p>Dari Inventory sampai Procurement, setiap status dan biaya bisa ditinjau sebelum Anda memutuskan.</p></div>
-    <div className="lp-capability-grid">
+    <AnimatedContent className="lp-capabilities-heading" distance={100} direction="vertical" duration={0.8} ease="power3.out" blur={0} stagger={0.08} threshold={0.1}>
+      <h2>Yang perlu Anda lihat, ada di satu alur</h2>
+      <p>Dari Inventory sampai Procurement, setiap status dan biaya bisa ditinjau sebelum Anda memutuskan</p>
+    </AnimatedContent>
+    <AnimatedContent className="lp-capability-grid" distance={100} direction="vertical" duration={0.8} ease="power3.out" blur={0} stagger={0.08} threshold={0.1}>
       <article className="lp-capability lp-capability-stock">
-        <div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi.</h3><p>Inventory memperlihatkan Current Stock, Incoming Quantity, dan kebutuhan restock dalam satu konteks. Anda juga dapat meminta penawaran lebih awal secara manual.</p></div>
+        <div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi</h3><p>Inventory memperlihatkan Current Stock, Incoming Quantity, dan kebutuhan restock dalam satu konteks, sehingga Anda juga dapat meminta penawaran lebih awal secara manual</p></div>
         <figure className="lp-capability-visual"><Image src="/landing/assets/photos/inventory-check-pexels.webp" alt="Pekerja toko memeriksa stok pada rak pendingin" width={1800} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
       <article className="lp-capability lp-capability-telegram">
-        <div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia.</h3><p>Bot Telegram Supplio menyebut dirinya AI, meminta harga dan ketentuan kepada supplier manusia, lalu menyimpan balasannya sebagai Quotation.</p></div>
+        <div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia</h3><p>Bot Telegram Supplio menyebut dirinya AI, meminta harga dan ketentuan kepada supplier manusia, lalu menyimpan balasannya sebagai Quotation</p></div>
         <figure className="lp-capability-visual"><Image src="/landing/assets/photos/supplier-phone-pexels.webp" alt="Pelaku usaha berbicara lewat telepon sambil menyiapkan pesanan" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
       <article className="lp-capability lp-capability-choice">
-        <div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian.</h3><p>Rekomendasi membandingkan harga barang dan ongkir terhadap Restock Budget. Jika belum ada pilihan yang memenuhi batas, alasannya tetap terlihat.</p></div>
+        <div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian</h3><p>Rekomendasi membandingkan harga barang dan ongkir terhadap Restock Budget, sementara alasannya tetap terlihat jika belum ada pilihan yang memenuhi batas</p></div>
         <figure className="lp-capability-visual"><Image src="/landing/assets/photos/budget-calculator-pexels.webp" alt="Tangan menghitung biaya dengan kalkulator dan dokumen di meja" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
-    </div>
+    </AnimatedContent>
   </div></section>;
 }
 
