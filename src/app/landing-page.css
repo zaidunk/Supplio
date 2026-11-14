@@ -1001,21 +1001,42 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
     }
 
     .lp-capability {
-        grid-template-columns: 1fr;
-        gap: 22px;
+        align-items: flex-start;
+        min-height: 560px;
         padding: 32px 28px
     }
 
-    .lp-capability-telegram .lp-capability-copy,
-    .lp-capability-telegram .lp-capability-visual {
-        grid-column: auto;
-        grid-row: auto
+    .lp-capability-copy,
+    .lp-capability-telegram .lp-capability-copy {
+        width: 100%;
+        margin-left: 0
     }
 
-    .lp-capability-visual {
+    .lp-capability-telegram .lp-capability-copy {
+        text-align: left
+    }
+
+    .lp-capability-telegram .lp-capability-copy p {
+        margin-left: 0
+    }
+
+    .lp-capability-visual,
+    .lp-capability-telegram .lp-capability-visual {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
         width: 100%;
-        max-width: 650px;
-        margin-inline: auto
+        height: 62%;
+        mask-image: linear-gradient(180deg, transparent 0%, #000 43%)
+    }
+
+    .lp-capability-stock .lp-capability-visual img {
+        object-position: center 48%
+    }
+
+    .lp-capability-choice .lp-capability-visual img {
+        object-position: center 58%
     }
 
     .lp-footer-top {
@@ -1100,6 +1121,7 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
     }
 
     .lp-capability {
+        min-height: 570px;
         padding: 28px 20px
     }
 
@@ -1673,105 +1695,112 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
 }
 
 .lp-capability-grid {
-    display: grid
+    display: grid;
+    gap: 16px
 }
 
 .lp-capability {
-    display: grid;
-    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    position: relative;
+    isolation: isolate;
+    display: flex;
     align-items: center;
-    gap: clamp(24px, 4vw, 56px);
-    min-width: 0;
-    padding: 48px clamp(28px, 4vw, 56px)
+    min-height: 440px;
+    overflow: hidden;
+    border-radius: 20px;
+    padding: clamp(32px, 5vw, 64px);
+    background: var(--blue-50)
 }
 
 .lp-capability-copy {
+    position: relative;
+    z-index: 1;
+    width: min(45%, 500px);
     min-width: 0
 }
 
 .lp-capability h3 {
     max-width: 510px;
     margin: 0;
-    color: var(--lp-dark);
+    color: #071f61;
     font-size: clamp(28px, 2.8vw, 36px);
-    font-weight: 500;
-    line-height: 1.16;
-    letter-spacing: -.025em
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -.025em;
+    text-wrap: balance
 }
 
 .lp-capability p {
-    max-width: 500px;
+    max-width: 470px;
     margin: 18px 0 0;
-    color: var(--lp-muted);
+    color: #31486d;
     font-size: 17px;
-    line-height: 1.6
+    font-weight: 500;
+    line-height: 1.6;
+    text-wrap: pretty
 }
 
 .lp-capability-visual {
-    display: grid;
-    place-items: center;
-    min-width: 0;
-    margin: 0
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 68%;
+    margin: 0;
+    pointer-events: none;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 38%)
 }
 
 .lp-capability-visual img {
     display: block;
     width: 100%;
-    height: auto;
-    object-fit: contain
-}
-
-.lp-capability-visual img {
-    aspect-ratio: 7/5;
+    height: 100%;
+    aspect-ratio: auto;
+    border-radius: 0;
     object-fit: cover;
-    border-radius: 10px
+    object-position: center
 }
 
-.lp-capability-visual figcaption,
-.lp-owner-visual figcaption {
-    justify-self: end;
-    margin-top: 9px;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--lp-muted)
+.lp-capability-stock,
+.lp-capability-telegram,
+.lp-capability-choice {
+    background: #e9f1f5;
+    color: var(--lp-dark)
 }
 
-.lp-capability-visual figcaption a,
-.lp-owner-visual figcaption a {
-    text-decoration: underline;
-    text-underline-offset: 3px
-}
-
-.lp-capability-stock {
-    background: var(--blue-50)
-}
-
-.lp-capability-telegram {
-    background: var(--soft-white)
+.lp-capability-stock .lp-capability-visual img {
+    object-position: center 46%
 }
 
 .lp-capability-telegram .lp-capability-copy {
-    grid-column: 2;
-    grid-row: 1
+    margin-left: auto;
+    text-align: right
+}
+
+.lp-capability-telegram .lp-capability-copy p {
+    margin-left: auto
 }
 
 .lp-capability-telegram .lp-capability-visual {
-    grid-column: 1;
-    grid-row: 1
+    right: auto;
+    left: 0;
+    mask-image: linear-gradient(270deg, transparent 0%, #000 38%)
 }
 
-.lp-capability-choice {
-    background: var(--blue-950);
-    color: #fff
+.lp-capability-telegram .lp-capability-visual img {
+    object-position: center 38%
 }
 
-.lp-capability-choice h3,
+.lp-capability-choice h3 {
+    color: #071f61
+}
+
 .lp-capability-choice p {
-    color: #fff
+    color: #31486d
 }
 
-.lp-capability-choice p {
-    opacity: .85
+.lp-capability-choice .lp-capability-visual img {
+    object-position: center 57%
 }
 
 .lp-owner {
@@ -2099,21 +2128,42 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
     }
 
     .lp-capability {
-        grid-template-columns: 1fr;
-        gap: 22px;
+        align-items: flex-start;
+        min-height: 560px;
         padding: 32px 28px
     }
 
-    .lp-capability-telegram .lp-capability-copy,
-    .lp-capability-telegram .lp-capability-visual {
-        grid-column: auto;
-        grid-row: auto
+    .lp-capability-copy,
+    .lp-capability-telegram .lp-capability-copy {
+        width: 100%;
+        margin-left: 0
     }
 
-    .lp-capability-visual {
+    .lp-capability-telegram .lp-capability-copy {
+        text-align: left
+    }
+
+    .lp-capability-telegram .lp-capability-copy p {
+        margin-left: 0
+    }
+
+    .lp-capability-visual,
+    .lp-capability-telegram .lp-capability-visual {
+        top: auto;
+        right: 0;
+        bottom: 0;
+        left: 0;
         width: 100%;
-        max-width: 650px;
-        margin-inline: auto
+        height: 62%;
+        mask-image: linear-gradient(180deg, transparent 0%, #000 43%)
+    }
+
+    .lp-capability-stock .lp-capability-visual img {
+        object-position: center 48%
+    }
+
+    .lp-capability-choice .lp-capability-visual img {
+        object-position: center 58%
     }
 
     .lp-footer-top {
@@ -2198,6 +2248,7 @@ html:has(.supplio-landing-root)::-webkit-scrollbar {
     }
 
     .lp-capability {
+        min-height: 570px;
         padding: 28px 20px
     }
 
