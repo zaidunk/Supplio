@@ -88,7 +88,7 @@ export function LiquidRevealShowcase() {
         coverCtx.fill();
 
         coverCtx.fillStyle = "#fc90cb";
-        coverCtx.font = "bold 11px sans-serif";
+        coverCtx.font = "500 11px sans-serif";
         coverCtx.fillText("CHAT MANUAL (TERCECER)", 40, 52);
 
         coverCtx.fillStyle = "#ffffff";
@@ -105,7 +105,7 @@ export function LiquidRevealShowcase() {
         coverCtx.stroke();
 
         coverCtx.fillStyle = "#f87171";
-        coverCtx.font = "bold 11px sans-serif";
+        coverCtx.font = "500 11px sans-serif";
         coverCtx.fillText("BALASAN MANUAL TERLAMBAT (2 HARI KEMUDIAN)", 56, 132);
 
         coverCtx.fillStyle = "#e2e8f0";
@@ -123,7 +123,7 @@ export function LiquidRevealShowcase() {
         coverCtx.fill();
 
         coverCtx.fillStyle = "#854d0e";
-        coverCtx.font = "bold 11px sans-serif";
+        coverCtx.font = "500 11px sans-serif";
         coverCtx.fillText("HITUNG MANUAL ⚠️", 14, 26);
         coverCtx.fillStyle = "#1c1917";
         coverCtx.font = "12px monospace";
@@ -131,7 +131,7 @@ export function LiquidRevealShowcase() {
         coverCtx.fillText("= 1.620.000", 14, 66);
         coverCtx.fillText("+ Ongkir ??", 14, 84);
         coverCtx.fillStyle = "#dc2626";
-        coverCtx.font = "bold 11px sans-serif";
+        coverCtx.font = "500 11px sans-serif";
         coverCtx.fillText("OVER BUDGET!", 14, 110);
         coverCtx.restore();
 

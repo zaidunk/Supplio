@@ -71,7 +71,7 @@ export function Header({
           {/* Login CTA */}
           <Link
             href="/login"
-            className="supplio-pill-btn supplio-pill-btn-dark supplio-pill-btn-sm"
+            className="supplio-pill-btn supplio-pill-btn-accent supplio-pill-btn-sm"
           >
             <span>Masuk</span>
             <span className="supplio-pill-badge">
