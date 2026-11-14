@@ -11,12 +11,16 @@ export class AuthError extends Error {
   }
 }
 
-/** User Supabase terverifikasi (getUser memvalidasi token ke server Auth, bukan sekadar membaca cookie). */
+/**
+ * Identitas user dari JWT yang diverifikasi tanda tangannya (getClaims), bukan sekadar membaca cookie.
+ * Tanpa round-trip ke server Auth: proxy.ts sudah memanggil getUser() di setiap request.
+ */
 export const getCurrentUser = cache(async () => {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
-  return data.user;
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims.sub) return null;
+  const email = typeof data.claims.email === "string" ? data.claims.email : undefined;
+  return { id: data.claims.sub, email };
 });
 
 /**
