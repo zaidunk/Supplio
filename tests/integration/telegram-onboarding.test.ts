@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createLinkToken, hashToken } from "@/lib/telegram/onboarding";
+import { confirmTelegramLink, createLinkToken, hashToken, rejectTelegramLink } from "@/lib/telegram/onboarding";
 import { processTelegramUpdate } from "@/lib/telegram/process-update";
 import { sendOutbound } from "@/lib/telegram/outbound";
 import { RUN_DB_TESTS, cleanupBusiness, createConnectedSupplier, createTestBusiness, db } from "./helpers";
@@ -82,21 +82,155 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
     expect((await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: supplier.id } })).usedAt).toBeNull();
   });
 
-  it("menekan tombol persetujuan menyimpan chatId, userId, verifiedAt dan menghanguskan token", async () => {
+  it("menekan tombol persetujuan hanya menyimpan chat sebagai MENUNGGU konfirmasi owner dan menghanguskan token", async () => {
     const supplier = await newSupplier();
     const chatId = newChatId();
     const { token } = await link(supplier.id);
 
-    const result = await connect(token, chatId);
+    await ingest(db(), tg, textUpdate({ chatId, text: `/start ${token}` }));
+    const button = tg.to(chatId).at(-1)!.inlineKeyboard![0][0];
+    const result = await ingest(
+      db(),
+      tg,
+      callbackUpdate({ chatId, data: button.callback_data, firstName: "Budi", lastName: "Santoso", username: "budi_toko" }),
+    );
+
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramPendingChatId).toBe(BigInt(chatId));
+    expect(after.telegramPendingUserId).toBe(BigInt(chatId));
+    expect(after.telegramPendingName).toBe("Budi Santoso");
+    expect(after.telegramPendingUsername).toBe("budi_toko");
+    expect(after.telegramPendingAt).not.toBeNull();
+    // Belum terverifikasi: chat belum boleh menghubungi agen.
+    expect(after.telegramChatId).toBeNull();
+    expect(after.telegramVerifiedAt).toBeNull();
+    expect((await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: supplier.id } })).usedAt).not.toBeNull();
+    expect(result.events).toEqual([]); // event connected baru dikirim setelah owner mengonfirmasi
+    expect(tg.answers.at(-1)?.text).toMatch(/menunggu konfirmasi/i);
+    expect(tg.to(chatId).at(-1)?.text).toMatch(/menunggu konfirmasi/i);
+  });
+
+  it("chat yang menunggu konfirmasi diabaikan: pesannya tidak dibalas dan tidak memicu agen", async () => {
+    const supplier = await newSupplier();
+    const chatId = newChatId();
+    await connect((await link(supplier.id)).token, chatId);
+    const before = tg.to(chatId).length;
+
+    const result = await ingest(db(), tg, textUpdate({ chatId, text: "halo, harga gula berapa?" }));
+
+    expect(result.status).toBe("IGNORED");
+    expect(result.events).toEqual([]);
+    expect(tg.to(chatId)).toHaveLength(before);
+    expect(await db().conversationMessage.count({ where: { supplierId: supplier.id, direction: "INBOUND" } })).toBe(0);
+  });
+
+  it("owner mengonfirmasi: chat terverifikasi, pending bersih, supplier diberi tahu, chat mulai diproses", async () => {
+    const supplier = await newSupplier();
+    const chatId = newChatId();
+    await connect((await link(supplier.id)).token, chatId);
+
+    const confirmed = await confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id });
 
     const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
     expect(after.telegramChatId).toBe(BigInt(chatId));
     expect(after.telegramUserId).toBe(BigInt(chatId));
-    expect(after.telegramVerifiedAt).not.toBeNull();
-    expect((await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: supplier.id } })).usedAt).not.toBeNull();
-    expect(result.events).toEqual([{ name: "supplier/telegram.connected", data: { supplierId: supplier.id, businessId } }]);
-    expect(tg.answers.at(-1)?.text).toMatch(/terhubung/i);
+    expect(after.telegramVerifiedAt).toEqual(confirmed.verifiedAt);
+    expect(after.telegramPendingChatId).toBeNull();
+    expect(after.telegramPendingName).toBeNull();
+    expect(after.telegramPendingAt).toBeNull();
     expect(tg.to(chatId).at(-1)?.text).toMatch(/koneksi berhasil/i);
+
+    // Sekarang chat dikenali (tanpa sesi aktif → balasan tetap sistem, bukan diabaikan).
+    const inbound = await ingest(db(), tg, textUpdate({ chatId, text: "halo" }));
+    expect(inbound.status).toBe("HANDLED");
+    expect(tg.to(chatId).at(-1)?.text).toMatch(/tidak ada permintaan penawaran yang aktif/i);
+  });
+
+  it("konfirmasi tanpa koneksi menunggu → 409; supplier bisnis lain → 404; tidak bisa dua kali", async () => {
+    const supplier = await newSupplier();
+    await expect(confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id })).rejects.toMatchObject({
+      code: "NO_PENDING_CONNECTION",
+    });
+
+    await connect((await link(supplier.id)).token, newChatId());
+    const other = await createTestBusiness();
+    try {
+      await expect(confirmTelegramLink(db(), tg, { businessId: other.id, supplierId: supplier.id })).rejects.toMatchObject({
+        code: "SUPPLIER_NOT_FOUND",
+      });
+      await expect(rejectTelegramLink(db(), tg, { businessId: other.id, supplierId: supplier.id })).rejects.toMatchObject({
+        code: "SUPPLIER_NOT_FOUND",
+      });
+    } finally {
+      await cleanupBusiness(other.id);
+    }
+    expect((await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramPendingChatId).not.toBeNull(); // tak tersentuh
+
+    await confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id });
+    await expect(confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id })).rejects.toMatchObject({
+      code: "NO_PENDING_CONNECTION",
+    });
+  });
+
+  it("owner menolak: chat dilepas, tidak pernah terverifikasi, supplier diberi tahu, tautan baru bisa dipakai", async () => {
+    const supplier = await newSupplier();
+    const chatId = newChatId();
+    await connect((await link(supplier.id)).token, chatId);
+
+    await rejectTelegramLink(db(), tg, { businessId, supplierId: supplier.id });
+
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramPendingChatId).toBeNull();
+    expect(after.telegramChatId).toBeNull();
+    expect(after.telegramVerifiedAt).toBeNull();
+    expect(tg.to(chatId).at(-1)?.text).toMatch(/tidak dikonfirmasi/i);
+    await expect(rejectTelegramLink(db(), tg, { businessId, supplierId: supplier.id })).rejects.toMatchObject({
+      code: "NO_PENDING_CONNECTION",
+    });
+
+    await connect((await link(supplier.id)).token, chatId); // chat yang sama boleh mencoba lagi dengan tautan baru
+    expect((await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramPendingChatId).toBe(BigInt(chatId));
+  });
+
+  it("menghubungkan ulang supplier yang sudah terhubung: koneksi lama tetap berlaku sampai chat baru dikonfirmasi", async () => {
+    const oldChat = newChatId();
+    const newChat = newChatId();
+    const supplier = await createConnectedSupplier(businessId, { name: "Pindah chat", chatId: oldChat });
+
+    await connect((await link(supplier.id)).token, newChat);
+    const pending = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(pending.telegramChatId).toBe(BigInt(oldChat));
+    expect(pending.telegramVerifiedAt).not.toBeNull();
+    expect(pending.telegramPendingChatId).toBe(BigInt(newChat));
+
+    await confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id });
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramChatId).toBe(BigInt(newChat));
+    expect(after.telegramPendingChatId).toBeNull();
+  });
+
+  it("chat yang sudah terverifikasi menyetujui lagi: langsung terhubung, tanpa konfirmasi ulang", async () => {
+    const chatId = newChatId();
+    const supplier = await createConnectedSupplier(businessId, { name: "Sudah", chatId });
+
+    await connect((await link(supplier.id)).token, chatId);
+
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramPendingChatId).toBeNull();
+    expect(after.telegramVerifiedAt).not.toBeNull();
+    expect(tg.to(chatId).at(-1)?.text).toMatch(/koneksi berhasil/i);
+  });
+
+  it("chat menunggu yang keburu dipakai supplier lain saat dikonfirmasi → CHAT_IN_USE, pending tetap", async () => {
+    const chatId = newChatId();
+    const supplier = await newSupplier("A");
+    await connect((await link(supplier.id)).token, chatId);
+    await createConnectedSupplier(businessId, { name: "B", chatId }); // chat yang sama terverifikasi di supplier lain
+
+    await expect(confirmTelegramLink(db(), tg, { businessId, supplierId: supplier.id })).rejects.toMatchObject({ code: "CHAT_IN_USE" });
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramChatId).toBeNull();
+    expect(after.telegramPendingChatId).toBe(BigInt(chatId));
   });
 
   it("memproses ulang update yang sama (retry) tidak mengirim balasan ganda", async () => {
@@ -112,8 +246,8 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
     const retry = await processTelegramUpdate(db(), tg, cb.update_id);
 
     expect(tg.sent.length).toBe(sentAfterFirst); // tidak ada pesan baru
-    expect(retry.events).toEqual([]); // sudah terhubung: tidak memicu event lagi
-    expect(await db().conversationMessage.count({ where: { supplierId: supplier.id, direction: "OUTBOUND" } })).toBe(2); // konsen + terhubung
+    expect(retry.events).toEqual([]);
+    expect(await db().conversationMessage.count({ where: { supplierId: supplier.id, direction: "OUTBOUND" } })).toBe(2); // konsen + menunggu
     await db().telegramUpdate.delete({ where: { updateId: BigInt(cb.update_id) } });
   });
 
@@ -129,7 +263,9 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
     const tokenRow = await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: supplier.id } });
     const result = await ingest(db(), tg, callbackUpdate({ chatId, data: `link:${tokenRow.id}` }));
     expect(result.events).toEqual([]);
-    expect((await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramChatId).toBeNull();
+    const after = await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } });
+    expect(after.telegramChatId).toBeNull();
+    expect(after.telegramPendingChatId).toBeNull();
   });
 
   it("token sekali pakai: chat kedua tidak bisa memakai tautan yang sudah dipakai", async () => {
@@ -145,7 +281,7 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
 
     const forged = await ingest(db(), tg, callbackUpdate({ chatId: second, data: `link:${tokenRow.id}` }));
     expect(forged.events).toEqual([]);
-    expect((await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramChatId).toBe(BigInt(first)); // tidak berpindah
+    expect((await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramPendingChatId).toBe(BigInt(first)); // tidak berpindah
   });
 
   it("dua penekanan serentak dari chat berbeda → hanya satu yang berhasil menghubungkan", async () => {
@@ -157,12 +293,13 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
     await ingest(db(), tg, textUpdate({ chatId: b, text: `/start ${token}` }));
     const tokenRow = await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: supplier.id } });
 
-    const results = await Promise.all([
+    await Promise.all([
       ingest(db(), tg, callbackUpdate({ chatId: a, data: `link:${tokenRow.id}` })),
       ingest(db(), tg, callbackUpdate({ chatId: b, data: `link:${tokenRow.id}` })),
     ]);
-    expect(results.flatMap((r) => r.events)).toHaveLength(1);
-    const bound = (await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramChatId;
+    const pendingMessages = [...tg.to(a), ...tg.to(b)].filter((m) => /menunggu konfirmasi dari/i.test(m.text));
+    expect(pendingMessages).toHaveLength(1); // hanya satu yang menang
+    const bound = (await db().supplier.findUniqueOrThrow({ where: { id: supplier.id } })).telegramPendingChatId;
     expect([BigInt(a), BigInt(b)]).toContain(bound);
   });
 
@@ -174,7 +311,9 @@ describe.skipIf(!RUN_DB_TESTS)("onboarding Telegram supplier (integrasi DB)", { 
 
     const result = await connect(token, chatId);
     expect(result.events).toEqual([]);
-    expect((await db().supplier.findUniqueOrThrow({ where: { id: other.id } })).telegramChatId).toBeNull();
+    const otherAfter = await db().supplier.findUniqueOrThrow({ where: { id: other.id } });
+    expect(otherAfter.telegramChatId).toBeNull();
+    expect(otherAfter.telegramPendingChatId).toBeNull();
     expect((await db().telegramLinkToken.findFirstOrThrow({ where: { supplierId: other.id } })).usedAt).toBeNull(); // rollback utuh
     expect(tg.answers.at(-1)?.text).toMatch(/sudah terhubung ke supplier lain/i);
   });

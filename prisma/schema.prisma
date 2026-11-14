@@ -189,6 +189,12 @@ model Supplier {
   telegramChatId     BigInt?   @unique
   telegramUserId     BigInt?
   telegramVerifiedAt DateTime?
+  /// Chat yang sudah menyetujui di Telegram tetapi belum dikonfirmasi owner (belum bisa dihubungi/menghubungi agen).
+  telegramPendingChatId   BigInt?   @unique
+  telegramPendingUserId   BigInt?
+  telegramPendingName     String?
+  telegramPendingUsername String?
+  telegramPendingAt       DateTime?
   isActive           Boolean   @default(true)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt

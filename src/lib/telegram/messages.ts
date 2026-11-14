@@ -20,9 +20,17 @@ export const buildConsentMessage = (p: { businessName: string; supplierName: str
   `Halo ${p.supplierName}! Saya asisten AI Supplio (program komputer, bukan manusia) yang bekerja atas nama ${p.businessName}.\n\n` +
   `Lewat chat ini saya akan meminta penawaran harga, stok, minimum order, ongkir, dan lead time. ` +
   `Saya tidak dapat memesan atau menjanjikan pembayaran; keputusan pembelian akhir ada pada pemilik ${p.businessName}.\n\n` +
-  `Setuju menerima permintaan penawaran lewat chat ini?`;
+  `Setuju menerima permintaan penawaran lewat chat ini? Setelah Anda setuju, ${p.businessName} akan mengonfirmasi koneksi ini lebih dulu.`;
 
 export const CONSENT_BUTTON_TEXT = "Ya, saya setuju";
+
+export const buildPendingMessage = (p: { businessName: string }) =>
+  `Terima kasih, persetujuan Anda sudah kami terima. Koneksi ini menunggu konfirmasi dari ${p.businessName}. ` +
+  `Anda belum akan menerima permintaan penawaran sampai dikonfirmasi; kami akan mengabari lewat chat ini.`;
+
+export const buildRejectedMessage = (p: { businessName: string }) =>
+  `Koneksi chat ini tidak dikonfirmasi oleh ${p.businessName}, jadi Anda tidak akan menerima permintaan penawaran. ` +
+  `Bila ini keliru, mohon minta tautan undangan baru dari ${p.businessName}.`;
 
 export const buildConnectedMessage = (p: { businessName: string }) =>
   `Terima kasih, koneksi berhasil. Anda akan menerima permintaan penawaran dari ${p.businessName} lewat chat ini. ` +

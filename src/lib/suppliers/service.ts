@@ -23,6 +23,8 @@ export interface SupplierRow {
   /** Hanya status; telegramChatId/UserId tidak pernah dikirim ke klien. */
   telegramConnected: boolean;
   telegramVerifiedAt: string | null;
+  /** Chat yang sudah menyetujui di Telegram dan menunggu konfirmasi owner. Id chat/user tidak dikirim ke klien. */
+  telegramPending: { name: string | null; username: string | null; requestedAt: string } | null;
   products: SupplierProductRow[];
 }
 
@@ -35,6 +37,10 @@ export async function listSuppliers(db: Db, businessId: string): Promise<Supplie
       name: true,
       isActive: true,
       telegramVerifiedAt: true,
+      telegramPendingChatId: true,
+      telegramPendingName: true,
+      telegramPendingUsername: true,
+      telegramPendingAt: true,
       products: {
         select: {
           productId: true,
@@ -57,6 +63,10 @@ export async function listSuppliers(db: Db, businessId: string): Promise<Supplie
     isActive: s.isActive,
     telegramConnected: s.telegramVerifiedAt !== null,
     telegramVerifiedAt: s.telegramVerifiedAt?.toISOString() ?? null,
+    telegramPending:
+      s.telegramPendingChatId !== null && s.telegramPendingAt
+        ? { name: s.telegramPendingName, username: s.telegramPendingUsername, requestedAt: s.telegramPendingAt.toISOString() }
+        : null,
     products: s.products
       .map((p) => ({
         productId: p.productId,

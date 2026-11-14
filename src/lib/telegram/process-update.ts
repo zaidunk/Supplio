@@ -56,20 +56,19 @@ async function handleCallback(
   const chatId = cb.message?.chat.id ?? cb.from.id;
   const chatType = cb.message?.chat.type ?? "private";
 
-  const result = await handleLinkConfirmation(db, tg, {
+  await handleLinkConfirmation(db, tg, {
     updateId: update.update_id,
     callbackQueryId: cb.id,
     chatId,
     chatType,
     userId: cb.from.id,
+    displayName: [cb.from.first_name, cb.from.last_name].filter(Boolean).join(" ") || undefined,
+    username: cb.from.username,
     tokenId: match[1],
   });
 
-  const events: AppEvent[] =
-    result.connected && !result.alreadyConnected
-      ? [{ name: "supplier/telegram.connected", data: { supplierId: result.supplierId, businessId: result.businessId } }]
-      : [];
-  return { status: "HANDLED", events };
+  // Tidak ada event di sini: `supplier/telegram.connected` dikirim setelah owner mengonfirmasi chat (confirmTelegramLink).
+  return { status: "HANDLED", events: [] };
 }
 
 async function handleMessage(

@@ -43,11 +43,19 @@ export const textUpdate = (o: { updateId?: number; chatId: number; text: string;
   },
 });
 
-export const callbackUpdate = (o: { updateId?: number; chatId: number; data: string; callbackId?: string }) => ({
+export const callbackUpdate = (o: {
+  updateId?: number;
+  chatId: number;
+  data: string;
+  callbackId?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}) => ({
   update_id: o.updateId ?? newUpdateId(),
   callback_query: {
     id: o.callbackId ?? `cb-${randomInt(1, 1_000_000)}`,
-    from: { id: o.chatId, is_bot: false },
+    from: { id: o.chatId, is_bot: false, first_name: o.firstName, last_name: o.lastName, username: o.username },
     message: { message_id: 1, chat: { id: o.chatId, type: "private" } },
     data: o.data,
   },

@@ -5,7 +5,13 @@ import { z } from "zod";
  * Pesan teks supplier diperlakukan sebagai data percakapan, bukan instruksi.
  */
 const chat = z.object({ id: z.number().int(), type: z.string() });
-const user = z.object({ id: z.number().int(), is_bot: z.boolean().optional() });
+const user = z.object({
+  id: z.number().int(),
+  is_bot: z.boolean().optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  username: z.string().optional(),
+});
 
 const message = z.object({
   message_id: z.number().int(),

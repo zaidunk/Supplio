@@ -3,7 +3,15 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { ACTIVE_SESSION_STATUSES, FINAL_SESSION_STATUSES } from "@/lib/procurement/sessions";
 import { TelegramApiError, createTelegramClient } from "@/lib/telegram/client";
-import { INVALID_LINK_REPLY, NO_ACTIVE_REQUEST_REPLY, buildConnectedMessage, buildConsentMessage, buildOutreachMessage } from "@/lib/telegram/messages";
+import {
+  INVALID_LINK_REPLY,
+  NO_ACTIVE_REQUEST_REPLY,
+  buildConnectedMessage,
+  buildConsentMessage,
+  buildOutreachMessage,
+  buildPendingMessage,
+  buildRejectedMessage,
+} from "@/lib/telegram/messages";
 import { hashToken } from "@/lib/telegram/onboarding";
 import { secretMatches } from "@/lib/telegram/secret";
 import { rawUpdateEnvelope, telegramUpdateSchema } from "@/lib/telegram/types";
@@ -163,7 +171,13 @@ describe("template pesan (§1, §5)", () => {
     expect(outreach).toMatch(/bukan pemesanan/i);
     expect(outreach.toLowerCase()).not.toContain("budget");
     expect(outreach).not.toMatch(/Rp\s?\d/);
-    for (const t of [NO_ACTIVE_REQUEST_REPLY, INVALID_LINK_REPLY, buildConnectedMessage({ businessName: "X" })]) {
+    for (const t of [
+      NO_ACTIVE_REQUEST_REPLY,
+      INVALID_LINK_REPLY,
+      buildConnectedMessage({ businessName: "X" }),
+      buildPendingMessage({ businessName: "X" }),
+      buildRejectedMessage({ businessName: "X" }),
+    ]) {
       expect(t.toLowerCase()).not.toContain("budget");
     }
   });
