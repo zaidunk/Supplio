@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, SlidersHorizontal } from "lucide-react";
@@ -76,15 +76,15 @@ function Capabilities() {
     <div className="lp-capability-grid">
       <article className="lp-capability lp-capability-stock">
         <div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi.</h3><p>Inventory memperlihatkan Current Stock, Incoming Quantity, dan kebutuhan restock dalam satu konteks. Anda juga dapat meminta penawaran lebih awal secara manual.</p></div>
-        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/inventory-shelves-pexels.webp" alt="Rak barang kebutuhan sehari-hari di sebuah toko kecil" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/cozy-corner-of-an-asian-grocery-store-interior-34357798/" target="_blank" rel="noopener noreferrer">Paolo Sanchez / Pexels</a></figcaption></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/inventory-check-pexels.webp" alt="Pekerja toko memeriksa stok pada rak pendingin" width={1800} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
       <article className="lp-capability lp-capability-telegram">
         <div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia.</h3><p>Bot Telegram Supplio menyebut dirinya AI, meminta harga dan ketentuan kepada supplier manusia, lalu menyimpan balasannya sebagai Quotation.</p></div>
-        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/supplier-phone-pexels.webp" alt="Pelaku usaha berbicara lewat telepon sambil menyiapkan pesanan" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-woman-talking-on-her-phone-while-boxing-pastry-8902305/" target="_blank" rel="noopener noreferrer">ANTONI SHKRABA production / Pexels</a></figcaption></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/supplier-phone-pexels.webp" alt="Pelaku usaha berbicara lewat telepon sambil menyiapkan pesanan" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
       <article className="lp-capability lp-capability-choice">
         <div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian.</h3><p>Rekomendasi membandingkan harga barang dan ongkir terhadap Restock Budget. Jika belum ada pilihan yang memenuhi batas, alasannya tetap terlihat.</p></div>
-        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/budget-calculator-pexels.webp" alt="Tangan menghitung biaya dengan kalkulator dan dokumen di meja" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-person-using-calculator-7654591/" target="_blank" rel="noopener noreferrer">Pavel Danilyuk / Pexels</a></figcaption></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/budget-calculator-pexels.webp" alt="Tangan menghitung biaya dengan kalkulator dan dokumen di meja" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 1200px" loading="lazy" /></figure>
       </article>
     </div>
   </div></section>;
@@ -93,6 +93,17 @@ function Capabilities() {
 function OwnerControl() {
   return (
     <section className="lp-owner" id="kendali">
+      <figure className="lp-owner-visual">
+        <Image
+          src="/landing/assets/photos/owner-tablet-pexels.webp"
+          alt="Pemilik usaha kecil menggunakan tablet di depan tokonya"
+          width={1800}
+          height={1000}
+          sizes="100vw"
+          className="lp-owner-image"
+          loading="lazy"
+        />
+      </figure>
       <div className="lp-wrap lp-owner-grid">
         <div>
           <h2>
@@ -102,25 +113,28 @@ function OwnerControl() {
             Supplio dapat meminta penawaran dan melakukan paling banyak satu counter-offer per supplier. Sistem tidak memesan atau menjanjikan pembayaran atas nama Anda.
           </p>
         </div>
-        <figure className="lp-owner-visual">
-          <Image
-            src="/landing/assets/photos/owner-review-pexels.webp"
-            alt="Seorang perempuan memeriksa dokumen sebelum mengambil keputusan"
-            width={1000}
-            height={1000}
-            sizes="(max-width: 767px) 100vw, 600px"
-            className="lp-owner-image"
-            loading="lazy"
-          />
-          <figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-woman-reading-a-document-6963840/" target="_blank" rel="noopener noreferrer">Mikhail Nilov / Pexels</a></figcaption>
-        </figure>
       </div>
     </section>
   );
 }
 
+function FaqItem({ id, question, answer }: { id: string; question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  const questionId = `${id}-question`;
+  const answerId = `${id}-answer`;
+
+  return <div className="lp-faq-item">
+    <button className={open ? "is-open" : undefined} id={questionId} type="button" aria-expanded={open} aria-controls={answerId} onClick={() => setOpen((current) => !current)}>
+      <span>{question}</span><ChevronDown size={20} aria-hidden="true" />
+    </button>
+    <div id={answerId} className={`lp-faq-answer${open ? " is-open" : ""}`} role="region" aria-labelledby={questionId} aria-hidden={!open}>
+      <div><p>{answer}</p></div>
+    </div>
+  </div>;
+}
+
 function TrustAndQuestions() {
-  return <section className="lp-section lp-trust" id="pertanyaan"><div className="lp-wrap lp-trust-grid"><div><h2>Prosesnya terbuka untuk ditinjau.</h2><p>Status penawaran, batas pembelian, dan alasan rekomendasi tampil sebelum keputusan akhir.</p><div className="lp-trust-points"><p><CircleCheck size={20} aria-hidden="true" /> Supplier tahu pesan berasal dari AI Supplio.</p><p><CircleCheck size={20} aria-hidden="true" /> Batas biaya diperiksa oleh sistem.</p><p><CircleCheck size={20} aria-hidden="true" /> Pembelian menunggu persetujuan pemilik.</p></div></div><div className="lp-faq"><h3>Pertanyaan umum</h3><details><summary>Apakah Supplio memesan otomatis?<ChevronDown size={20} aria-hidden="true" /></summary><p>Supplio otomatis memantau stok dan meminta penawaran saat dibutuhkan. Pembelian tetap menunggu Final Approval dari pemilik.</p></details><details><summary>Siapa yang membalas pesan Telegram?<ChevronDown size={20} aria-hidden="true" /></summary><p>Supplier manusia membalas bot Telegram Supplio. Bot menyatakan bahwa pesannya dibuat oleh AI, bukan dari akun pribadi Anda.</p></details><details><summary>Bagaimana jika penawaran tidak sesuai batas?<ChevronDown size={20} aria-hidden="true" /></summary><p>Supplio tidak memaksakan pembelian. Anda akan melihat alasan tidak adanya kombinasi yang memenuhi kebutuhan dan batas yang ditetapkan.</p></details></div></div></section>;
+  return <section className="lp-section lp-trust" id="pertanyaan"><div className="lp-wrap lp-trust-grid"><div><h2>Prosesnya terbuka untuk ditinjau.</h2><p>Status penawaran, batas pembelian, dan alasan rekomendasi tampil sebelum keputusan akhir.</p><div className="lp-trust-points"><p><CircleCheck size={20} aria-hidden="true" /> Supplier tahu pesan berasal dari AI Supplio.</p><p><CircleCheck size={20} aria-hidden="true" /> Batas biaya diperiksa oleh sistem.</p><p><CircleCheck size={20} aria-hidden="true" /> Pembelian menunggu persetujuan pemilik.</p></div></div><div className="lp-faq"><h3>Pertanyaan umum</h3><FaqItem id="faq-order" question="Apakah Supplio memesan otomatis?" answer="Supplio otomatis memantau stok dan meminta penawaran saat dibutuhkan. Pembelian tetap menunggu Final Approval dari pemilik." /><FaqItem id="faq-telegram" question="Siapa yang membalas pesan Telegram?" answer="Supplier manusia membalas bot Telegram Supplio. Bot menyatakan bahwa pesannya dibuat oleh AI, bukan dari akun pribadi Anda." /><FaqItem id="faq-budget" question="Bagaimana jika penawaran tidak sesuai batas?" answer="Supplio tidak memaksakan pembelian. Anda akan melihat alasan tidak adanya kombinasi yang memenuhi kebutuhan dan batas yang ditetapkan." /></div></div></section>;
 }
 
 function Footer() {
@@ -142,7 +156,7 @@ export default function LandingExperience() {
       gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);
       const context = gsap.context(() => {
-        gsap.fromTo(".lp-owner-image", { y: 36, opacity: 0.65 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out", scrollTrigger: { trigger: ".lp-owner", start: "top 75%", once: true } });
+        gsap.fromTo(".lp-owner-visual", { y: 36, opacity: 0.65 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out", scrollTrigger: { trigger: ".lp-owner", start: "top 75%", once: true } });
       });
       ScrollTrigger.refresh();
       dispose = () => { context.revert(); gsap.ticker.remove(tick); lenis.destroy(); };
