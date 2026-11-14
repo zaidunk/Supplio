@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -13,10 +14,11 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 py-8 text-center">
-      <p className="font-medium">{title}</p>
-      {description ? <p className="max-w-[52ch] text-sm text-muted-foreground">{description}</p> : null}
+      <Image src="/brand/icon.svg" alt="" width={96} height={92} />
+      <p className="text-xl font-medium text-blue-700">{title}</p>
+      {description ? <p className="max-w-[360px] text-sm text-muted-foreground">{description}</p> : null}
       {action ? (
-        <Link href={action.href} className={buttonVariants({ variant: "outline", size: "sm" })}>
+        <Link href={action.href} className={buttonVariants()}>
           {action.label}
         </Link>
       ) : null}

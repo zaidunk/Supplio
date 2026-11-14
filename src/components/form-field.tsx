@@ -1,9 +1,10 @@
 /** Label membungkus kontrolnya sehingga terhubung otomatis (aksesibilitas) tanpa perlu id. */
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium leading-none">{label}</span>
+      <span className="font-medium leading-5">{label}</span>
       {children}
+      {hint ? <span className="text-[0.8125rem] leading-5 text-muted-foreground">{hint}</span> : null}
     </label>
   );
 }
