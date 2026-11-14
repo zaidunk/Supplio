@@ -4,7 +4,7 @@ import LandingExperience from "./landing-experience";
 import { LANDING_MASCOT_SECTIONS } from "./landing-mascot";
 
 export const metadata: Metadata = {
-  title: "Supplio — Restock dan penawaran supplier untuk UMKM",
+  title: "Supplio",
   description:
     "Supplio memantau stok, meminta penawaran supplier lewat Telegram, lalu membandingkan biaya agar Anda dapat menyetujui pembelian dengan jelas.",
 };
