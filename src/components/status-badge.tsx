@@ -43,6 +43,7 @@ const SUPPLIER_VARIANT: Record<keyof typeof SUPPLIER_STATUS_ICON, Variant> = {
   inactive: "neutral",
   telegramConnected: "success",
   telegramDisconnected: "neutral",
+  telegramPending: "warning",
 };
 
 function IconBadge({ variant, icon: Icon, children }: { variant: Variant; icon: LucideIcon; children: React.ReactNode }) {

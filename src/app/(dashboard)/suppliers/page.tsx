@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { SupplierStatusBadge } from "@/components/status-badge";
 import { AddSupplierButton, SupplierProductsButton } from "@/components/suppliers/supplier-dialogs";
-import { RemoveProductButton, ToggleActiveButton } from "@/components/suppliers/supplier-actions";
+import { RemoveProductButton, TelegramPendingActions, ToggleActiveButton } from "@/components/suppliers/supplier-actions";
 import { TelegramLinkButton } from "@/components/suppliers/telegram-link-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,19 +62,37 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
                 {s.telegramConnected ? (
                   <SupplierStatusBadge kind="telegramConnected">Telegram terhubung ({formatDateTime(s.telegramVerifiedAt!)})</SupplierStatusBadge>
                 ) : null}
+                {s.telegramPending ? <SupplierStatusBadge kind="telegramPending">Menunggu konfirmasi</SupplierStatusBadge> : null}
                 <span className="text-sm text-muted-foreground">{s.products.length} produk</span>
               </div>
               <ToggleActiveButton supplierId={s.id} isActive={s.isActive} />
             </div>
+            {s.telegramPending ? (
+              <div role="status" className="mt-2 flex flex-col gap-3 rounded-xl bg-warning-bg p-4 text-sm">
+                <p className="text-warning">
+                  <strong>Ada chat Telegram yang menunggu konfirmasi Anda.</strong> Chat ini menyetujui tautan onboarding
+                  {s.telegramPending.name || s.telegramPending.username ? (
+                    <>
+                      {" "}
+                      dari <strong>{s.telegramPending.name ?? "pengguna tanpa nama"}</strong>
+                      {s.telegramPending.username ? ` (@${s.telegramPending.username})` : null}
+                    </>
+                  ) : null}{" "}
+                  pada {formatDateTime(s.telegramPending.requestedAt)}. Konfirmasi hanya bila benar itu {s.name}; sebelum itu
+                  agen tidak mengirim atau memproses pesan dari chat ini.
+                </p>
+                <TelegramPendingActions supplierId={s.id} />
+              </div>
+            ) : null}
             {s.telegramConnected ? (
               <>
                 <TelegramLinkButton supplierId={s.id} connected />
               </>
-            ) : (
+            ) : s.telegramPending ? null : (
               <div role="status" className="mt-2 flex flex-col gap-3 rounded-xl bg-warning-bg p-4 text-sm">
                 <p className="text-warning">
                   <strong>Telegram belum terhubung.</strong> Supplio tidak bisa memulai chat lebih dulu. Kirim tautan
-                  onboarding ke supplier; supplier perlu membukanya dan menyetujui koneksi.
+                  onboarding ke supplier; supplier membukanya dan menyetujui koneksi, lalu Anda mengonfirmasinya di sini.
                 </p>
                 <TelegramLinkButton supplierId={s.id} connected={false} />
               </div>

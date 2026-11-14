@@ -149,7 +149,8 @@ Gunakan **mixed-integer linear programming (MILP)** melalui `javascript-lp-solve
 1. Owner mendaftarkan supplier dan memilih produk terkait.
 2. Backend membuat token deep link acak, sekali pakai, dan kedaluwarsa: `https://t.me/<BOT_USERNAME>?start=<token>`.
 3. Supplier membuka tautan dan mengirim `/start`; bot mengidentifikasi supplier dan meminta konfirmasi koneksi/izin menerima penawaran.
-4. Backend menyimpan `telegramChatId`, `telegramUserId`, serta `telegramVerifiedAt` untuk supplier tersebut. Bot tidak dapat mengawali private chat sebelum supplier melakukan interaksi pertama.
+4. Setelah supplier menekan tombol persetujuan, backend menyimpan chat sebagai **menunggu konfirmasi owner** (`telegramPendingChatId`, `telegramPendingUserId`, nama dan username Telegram untuk ditampilkan, `telegramPendingAt`). Token hangus. Chat ini **belum terverifikasi**: pesannya diabaikan, tidak memicu agen, dan tidak menerima pesan outreach.
+5. Di halaman Supplier, owner melihat badge "Menunggu konfirmasi" beserta nama/username Telegram pengirim, lalu menekan **Konfirmasi** atau **Tolak** (`POST /api/suppliers/[id]/telegram-confirm` / `telegram-reject`). Konfirmasi memindahkan chat ke `telegramChatId`/`telegramUserId`, mengisi `telegramVerifiedAt`, mengirim pesan "koneksi berhasil", dan baru saat itu event `supplier/telegram.connected` dikirim. Tolak melepas chat pending dan memberi tahu supplier. Koneksi lama (bila ada) tetap berlaku sampai chat baru dikonfirmasi. Bot tidak dapat mengawali private chat sebelum supplier melakukan interaksi pertama.
 
 **Pertukaran pesan:**
 
@@ -268,6 +269,8 @@ Setiap transisi status divalidasi server; event/job yang terlambat tidak boleh m
 | `GET/POST` | `/api/suppliers` | Daftar/tambah supplier dan relasi produk. |
 | `PATCH` | `/api/suppliers/[id]` | Ubah supplier/produk/harga referensi. |
 | `POST` | `/api/suppliers/[id]/telegram-link` | Buat deep link onboarding sekali pakai. |
+| `POST` | `/api/suppliers/[id]/telegram-confirm` | Owner mengonfirmasi chat Telegram yang menunggu; supplier menjadi terverifikasi. |
+| `POST` | `/api/suppliers/[id]/telegram-reject` | Owner menolak chat Telegram yang menunggu. |
 | `POST` | `/api/telegram/webhook` | Verifikasi, persist, dan dispatch update Telegram. |
 | `GET/POST` | `/api/procurement` | Daftar request dan status; `POST` = permintaan penawaran manual owner (`clientKey`, `items[]`: `productId`, `quantity`, `maxDeliveryDays?`). |
 | `GET` | `/api/procurement/[id]` | Detail context, sesi, quote, rekomendasi, PO. |

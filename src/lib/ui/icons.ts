@@ -93,4 +93,5 @@ export const SUPPLIER_STATUS_ICON = {
   inactive: X,
   telegramConnected: Send,
   telegramDisconnected: Send,
+  telegramPending: Clock,
 } as const;
