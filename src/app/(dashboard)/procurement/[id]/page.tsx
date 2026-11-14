@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { ApprovalPanel } from "@/components/procurement/approval-panel";
+import { NoSolutionPanel } from "@/components/procurement/no-solution-panel";
 import { ProgressStepper } from "@/components/procurement/progress-stepper";
 import { ResendConfirmationButton } from "@/components/procurement/resend-confirmation-button";
 import { PoStatusBadge, RequestStatusBadge } from "@/components/status-badge";
@@ -12,6 +13,7 @@ import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { DomainError } from "@/lib/errors";
 import { formatDateTime, formatQty, formatRupiah } from "@/lib/format";
+import { buildManualHints } from "@/lib/procurement/manual-options";
 import { getRequestDetail } from "@/lib/procurement/queries";
 import { idSchema } from "@/lib/validation/common";
 import { QUOTATION_STATUS_LABEL, SESSION_STATUS_LABEL, STATUS_LABEL } from "@/lib/ui/status";
@@ -124,6 +126,10 @@ export default async function ProcurementDetailPage(props: PageProps<"/procureme
                   ))}
               </ul>
             </div>
+
+            {request.status === "NO_FEASIBLE_SOLUTION" ? (
+              <NoSolutionPanel hints={buildManualHints(request.items, request.sessions)} />
+            ) : null}
 
             {request.status === "AWAITING_APPROVAL" && rec.solverStatus === "OPTIMAL" ? (
               <ApprovalPanel
