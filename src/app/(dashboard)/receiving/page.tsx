@@ -1,13 +1,13 @@
-import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { ReceiptForm } from "@/components/procurement/receipt-form";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PoStatusBadge } from "@/components/status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { formatDateTime, formatQty, formatRupiah } from "@/lib/format";
 import { listPurchaseOrders } from "@/lib/procurement/receiving";
-import { PO_STATUS_LABEL } from "@/lib/ui/status";
 
 export default async function ReceivingPage() {
   const business = await requireBusiness();
@@ -17,16 +17,18 @@ export default async function ReceivingPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Penerimaan</h1>
-        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Catat barang yang benar-benar diterima. Stok bertambah sesuai jumlah yang Anda isi, maksimal sebesar sisa pesanan.
-        </p>
-      </div>
+      <PageHeader
+        title="Penerimaan"
+      />
 
       {outstanding.length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">Tidak ada purchase order yang menunggu penerimaan. PO baru muncul di sini setelah Anda menyetujui pembelian.</CardContent>
+          <CardContent>
+            <EmptyState
+              title="Tidak ada purchase order yang menunggu penerimaan"
+              action={{ href: "/procurement", label: "Lihat procurement request" }}
+            />
+          </CardContent>
         </Card>
       ) : null}
 
@@ -35,14 +37,8 @@ export default async function ReceivingPage() {
           <CardHeader>
             <div className="flex flex-wrap items-center gap-2">
               <CardTitle>{po.poNumber}</CardTitle>
-              <Badge variant="secondary">{PO_STATUS_LABEL[po.status]}</Badge>
+              <PoStatusBadge status={po.status} />
             </div>
-            <CardDescription>
-              {po.supplierName} · total {formatRupiah(po.totalCost)} ·{" "}
-              <Link href={`/procurement/${po.requestId}`} className="font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                lihat procurement request
-              </Link>
-            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="overflow-x-auto">
@@ -107,7 +103,9 @@ export default async function ReceivingPage() {
                   <TableRow key={po.id}>
                     <TableCell className="font-medium">{po.poNumber}</TableCell>
                     <TableCell>{po.supplierName}</TableCell>
-                    <TableCell>{PO_STATUS_LABEL[po.status]}</TableCell>
+                    <TableCell>
+                      <PoStatusBadge status={po.status} />
+                    </TableCell>
                     <TableCell className="text-right">{formatRupiah(po.totalCost)}</TableCell>
                     <TableCell>{formatDateTime(po.createdAt)}</TableCell>
                   </TableRow>

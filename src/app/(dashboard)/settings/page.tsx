@@ -1,9 +1,9 @@
+import { PageHeader } from "@/components/page-header";
 import { AiSettingsForm } from "@/components/settings/ai-settings-form";
 import { BusinessSettingsForm } from "@/components/settings/business-settings-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
-import { getServerEnv } from "@/lib/env";
 import { getActiveAiSettings, getBusinessSettings } from "@/lib/settings/service";
 
 export default async function SettingsPage() {
@@ -15,21 +15,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Pengaturan</h1>
-        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Atur batas belanja, waktu tunggu supplier, dan gaya komunikasi AI.
-        </p>
-      </div>
+      <PageHeader title="Pengaturan" />
 
       <Card>
         <CardHeader>
           <CardTitle>Procurement</CardTitle>
-          <CardDescription>
-            Restock dan permintaan penawaran berjalan otomatis tanpa persetujuan Anda. Anda hanya memberi Final Approval
-            atas rekomendasi pembelian. Procurement request kedaluwarsa dalam{" "}
-            {getServerEnv().PROCUREMENT_REQUEST_EXPIRY_HOURS} jam; nilai ini tidak bisa diubah dari halaman ini.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <BusinessSettingsForm

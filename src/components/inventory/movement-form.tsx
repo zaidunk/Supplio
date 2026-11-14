@@ -69,7 +69,7 @@ export function MovementForm({ products }: { products: ProductOption[] }) {
           <option value="ADJUSTMENT">Penyesuaian stok (+/-)</option>
         </NativeSelect>
       </Field>
-      <Field label="Jumlah" hint={type === "ADJUSTMENT" ? "Boleh negatif, mis. -2,5" : undefined}>
+      <Field label="Jumlah">
         <Input name="quantity" inputMode="decimal" required />
       </Field>
       <Field label="Catatan (opsional)">

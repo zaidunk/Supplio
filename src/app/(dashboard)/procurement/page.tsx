@@ -6,7 +6,9 @@ import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
 import { formatDateTime, formatRupiah } from "@/lib/format";
 import { listRequests } from "@/lib/procurement/queries";
-import { STATUS_LABEL } from "@/lib/ui/status";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { RequestStatusBadge } from "@/components/status-badge";
 
 export default async function ProcurementPage() {
   const business = await requireBusiness();
@@ -14,13 +16,9 @@ export default async function ProcurementPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Procurement</h1>
-        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Pantau permintaan penawaran, negosiasi supplier, dan rekomendasi pembelian. Request dibuat otomatis saat
-          restock terdeteksi, atau manual dari halaman Inventory.
-        </p>
-      </div>
+      <PageHeader
+        title="Procurement"
+      />
       <Card>
         <CardHeader>
           <CardTitle>Procurement request</CardTitle>
@@ -40,18 +38,24 @@ export default async function ProcurementPage() {
             <TableBody>
               {requests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
-                    Belum ada procurement request. Request pertama dibuat otomatis saat restock terdeteksi, atau minta
-                    penawaran manual dari Inventory.
+                  <TableCell colSpan={6} className="whitespace-normal">
+                    <EmptyState
+                      title="Belum ada procurement request"
+                      action={{ href: "/inventory#minta-penawaran", label: "Minta penawaran manual" }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : null}
               {requests.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell>{formatDateTime(r.createdAt)}</TableCell>
+                  <TableCell>
+                    <Link href={`/procurement/${r.id}`} className="font-medium hover:text-primary hover:underline underline-offset-4">
+                      {formatDateTime(r.createdAt)}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap items-center gap-1">
-                      <Badge variant="secondary">{STATUS_LABEL[r.status]}</Badge>
+                      <RequestStatusBadge status={r.status} />
                       {r.triggerSource === "MANUAL" ? <Badge variant="outline">Manual</Badge> : null}
                     </div>
                   </TableCell>
@@ -59,8 +63,12 @@ export default async function ProcurementPage() {
                   <TableCell className="text-right">{formatRupiah(r.restockBudget)}</TableCell>
                   <TableCell>{r.expiresAt ? formatDateTime(r.expiresAt) : "-"}</TableCell>
                   <TableCell>
-                    <Link href={`/procurement/${r.id}`} className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800">
-                      Lihat detail
+                    <Link
+                      href={`/procurement/${r.id}`}
+                      aria-label={`Buka request ${formatDateTime(r.createdAt)}`}
+                      className="text-sm font-medium text-primary underline underline-offset-4 hover:text-blue-800"
+                    >
+                      Buka
                     </Link>
                   </TableCell>
                 </TableRow>

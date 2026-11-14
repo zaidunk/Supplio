@@ -29,7 +29,7 @@ export function AiSettingsForm(props: {
         negotiationStyle: String(f.get("negotiationStyle")),
         customInstructions: String(f.get("customInstructions") ?? ""),
       });
-      setInfo(`Tersimpan sebagai versi ${saved.version}. Berlaku untuk request dan sesi negosiasi baru.`);
+      setInfo(`Tersimpan sebagai versi ${saved.version}.`);
       startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan.");
@@ -38,17 +38,13 @@ export function AiSettingsForm(props: {
 
   return (
     <form onSubmit={onSubmit} className="grid max-w-xl gap-4">
-      <p className="rounded-md border bg-muted/40 p-3 text-sm text-muted-foreground">
-        Pengaturan ini hanya mengubah <strong>gaya</strong> komunikasi AI. Restock Budget, Maximum Unit Price, Final
-        Approval, dan jumlah putaran negosiasi tetap ditegakkan sistem. Versi aktif: {props.version}.
-      </p>
-      <Field label="Nada komunikasi" hint="Contoh: sopan dan santai">
+      <Field label="Nada komunikasi">
         <Input name="communicationTone" defaultValue={props.communicationTone} maxLength={200} required />
       </Field>
-      <Field label="Gaya negosiasi" hint="Contoh: tegas tetapi ramah">
+      <Field label="Gaya negosiasi">
         <Input name="negotiationStyle" defaultValue={props.negotiationStyle} maxLength={200} required />
       </Field>
-      <Field label="Instruksi tambahan" hint="Opsional, maksimal 1000 karakter">
+      <Field label="Instruksi tambahan">
         <textarea
           name="customInstructions"
           defaultValue={props.customInstructions}

@@ -4,18 +4,26 @@ import { signOut } from "@/app/login/actions";
 import { NavLinks } from "@/components/nav-links";
 import { Button } from "@/components/ui/button";
 import { requireBusiness } from "@/lib/auth/current-business";
-
-const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/inventory", label: "Inventory" },
-  { href: "/suppliers", label: "Supplier" },
-  { href: "/procurement", label: "Procurement" },
-  { href: "/receiving", label: "Penerimaan" },
-  { href: "/settings", label: "Pengaturan" },
-];
+import { prisma } from "@/lib/db/prisma";
+import { listPurchaseOrders } from "@/lib/procurement/receiving";
+import { listRequests } from "@/lib/procurement/queries";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const business = await requireBusiness();
+  const [requests, openOrders] = await Promise.all([
+    listRequests(prisma, business.id),
+    listPurchaseOrders(prisma, business.id, { outstandingOnly: true }),
+  ]);
+  const awaitingApproval = requests.filter((r) => r.status === "AWAITING_APPROVAL").length;
+
+  const NAV = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/inventory", label: "Inventory" },
+    { href: "/suppliers", label: "Supplier" },
+    { href: "/procurement", label: "Procurement", badge: awaitingApproval },
+    { href: "/receiving", label: "Penerimaan", badge: openOrders.length },
+    { href: "/settings", label: "Pengaturan" },
+  ];
 
   return (
     <div className="flex flex-1 flex-col">

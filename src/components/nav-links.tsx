@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export type NavItem = { href: string; label: string };
+/** `badge`: jumlah item yang menunggu tindakan pemilik; disembunyikan bila 0. */
+export type NavItem = { href: string; label: string; badge?: number };
 
 export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
@@ -26,6 +27,14 @@ export function NavLinks({ items }: { items: NavItem[] }) {
             )}
           >
             {item.label}
+            {item.badge ? (
+              <span
+                aria-label={`${item.badge} perlu perhatian`}
+                className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground tabular-nums"
+              >
+                {item.badge}
+              </span>
+            ) : null}
           </Link>
         );
       })}

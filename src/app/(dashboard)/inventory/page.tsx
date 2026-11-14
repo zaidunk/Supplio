@@ -1,9 +1,12 @@
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { Term } from "@/components/term";
 import { DeleteProductButton } from "@/components/inventory/delete-product-button";
 import { MovementForm } from "@/components/inventory/movement-form";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RequestQuotePanel } from "@/components/inventory/request-quote-panel";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
@@ -43,38 +46,9 @@ export default async function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Inventory</h1>
-        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Restock dimulai otomatis saat Inventory Position (Current Stock + Incoming Quantity) mencapai Reorder Point.
-        </p>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Catat mutasi stok</CardTitle>
-          <CardDescription>
-            Catat barang keluar, masuk, atau penyesuaian. Setiap catatan memicu pengecekan restock. Barang dari purchase
-            order dicatat di halaman Penerimaan.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MovementForm products={rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit }))} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Minta penawaran manual</CardTitle>
-          <CardDescription>
-            Pilih barang yang ingin ditanyakan harganya ke supplier sekarang, tanpa menunggu Reorder Point. Jumlah bisa
-            diubah. Barang yang masih dalam purchase order tetap bisa dipilih, tetapi berisiko kelebihan beli.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RequestQuotePanel rows={rows} />
-        </CardContent>
-      </Card>
+      <PageHeader
+        title="Inventory"
+      />
 
       <Card>
         <CardHeader>
@@ -85,12 +59,25 @@ export default async function InventoryPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Produk</TableHead>
-                <TableHead className="text-right">Current Stock</TableHead>
-                <TableHead className="text-right">Incoming Quantity</TableHead>
-                <TableHead className="text-right">Inventory Position</TableHead>
-                <TableHead className="text-right">Reorder Point</TableHead>
-                <TableHead className="text-right">Target Stock</TableHead>
-                <TableHead className="text-right">Required Quantity</TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Stok fisik yang tersedia sekarang">Current Stock</Term>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Jumlah dari purchase order yang sudah disetujui tetapi belum diterima">Incoming Quantity</Term>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Current Stock ditambah Incoming Quantity">Inventory Position</Term>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Batas stok: bila Inventory Position mencapai angka ini, restock dimulai">Reorder Point</Term>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Sasaran posisi stok setelah pembelian">Target Stock</Term>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Term hint="Jumlah yang perlu dibeli agar mencapai Target Stock">Required Quantity</Term>
+                </TableHead>
+                <TableHead className="text-right">Stok cukup (hari)</TableHead>
                 <TableHead className="text-right">Supplier aktif</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead />
@@ -99,8 +86,11 @@ export default async function InventoryPage() {
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground">
-                    Belum ada produk. Tambahkan produk pertama di bagian “Tambah produk” di bawah.
+                  <TableCell colSpan={11} className="whitespace-normal">
+                    <EmptyState
+                      title="Belum ada produk"
+                      action={{ href: "#tambah-produk", label: "Tambah produk" }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : null}
@@ -115,6 +105,7 @@ export default async function InventoryPage() {
                   <TableCell className="text-right">{formatQty(r.reorderPoint)}</TableCell>
                   <TableCell className="text-right">{formatQty(r.targetStock)}</TableCell>
                   <TableCell className="text-right">{formatQty(r.requiredQuantity)}</TableCell>
+                  <TableCell className="text-right">{r.daysOfCover === null ? "-" : formatQty(r.daysOfCover)}</TableCell>
                   <TableCell className="text-right">{r.activeSupplierCount}</TableCell>
                   <TableCell>
                     <StatusBadges row={r} />
@@ -131,6 +122,24 @@ export default async function InventoryPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Catat mutasi stok</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MovementForm products={rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit }))} />
+        </CardContent>
+      </Card>
+
+      <Card id="minta-penawaran" className="scroll-mt-24">
+        <CardHeader>
+          <CardTitle>Minta penawaran manual</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RequestQuotePanel rows={rows} />
+        </CardContent>
+      </Card>
+
+      <Card id="tambah-produk" className="scroll-mt-24">
+        <CardHeader>
           <CardTitle>Tambah produk</CardTitle>
         </CardHeader>
         <CardContent>
@@ -142,9 +151,6 @@ export default async function InventoryPage() {
         <Card>
           <CardHeader>
             <CardTitle>Ubah konfigurasi produk</CardTitle>
-            <CardDescription>
-              Perubahan di sini memicu pengecekan restock. Stok tidak bisa diubah di sini; gunakan “Catat mutasi stok”.
-            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {rows.map((r) => (

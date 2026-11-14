@@ -1,8 +1,10 @@
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { SupplierForm } from "@/components/suppliers/supplier-form";
 import { RemoveProductButton, ToggleActiveButton } from "@/components/suppliers/supplier-actions";
 import { TelegramLinkButton } from "@/components/suppliers/telegram-link-button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requireBusiness } from "@/lib/auth/current-business";
 import { prisma } from "@/lib/db/prisma";
@@ -22,18 +24,17 @@ export default async function SuppliersPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-[clamp(2rem,4vw,3rem)] leading-[1.08] font-medium tracking-[-0.03em] text-blue-700">Supplier</h1>
-        <p className="mt-3 max-w-[68ch] text-base text-muted-foreground">
-          Harga, MOQ, dan lead time di sini hanya referensi. Harga rekomendasi berasal dari Quotation aktual supplier
-          lewat Telegram.
-        </p>
-      </div>
+      <PageHeader
+        title="Supplier"
+      />
 
       {suppliers.length === 0 ? (
         <Card>
-          <CardContent className="py-6 text-sm text-muted-foreground">
-            Belum ada supplier. Tambahkan supplier pertama di bawah untuk mulai meminta penawaran.
+          <CardContent>
+            <EmptyState
+              title="Belum ada supplier"
+              action={{ href: "#tambah-supplier", label: "Tambah supplier" }}
+            />
           </CardContent>
         </Card>
       ) : null}
@@ -44,70 +45,79 @@ export default async function SuppliersPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{s.name}</CardTitle>
-                <Badge variant={s.isActive ? "default" : "outline"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge>
-                <Badge variant={s.telegramConnected ? "default" : "secondary"}>
-                  {s.telegramConnected
-                    ? `Telegram terhubung (${formatDateTime(s.telegramVerifiedAt!)})`
-                    : "Telegram belum terhubung"}
-                </Badge>
+                <Badge variant={s.isActive ? "success" : "outline"}>{s.isActive ? "Aktif" : "Nonaktif"}</Badge>
+                {s.telegramConnected ? (
+                  <Badge variant="success">Telegram terhubung ({formatDateTime(s.telegramVerifiedAt!)})</Badge>
+                ) : null}
+                <span className="text-sm text-muted-foreground">{s.products.length} produk</span>
               </div>
               <ToggleActiveButton supplierId={s.id} isActive={s.isActive} />
             </div>
-            <CardDescription>
-              {s.telegramConnected
-                ? "Supplio bisa menghubungi supplier ini lewat Telegram."
-                : "Supplio tidak bisa memulai chat lebih dulu. Kirim tautan onboarding ke supplier; supplier perlu membukanya dan menyetujui koneksi."}
-            </CardDescription>
-            <TelegramLinkButton supplierId={s.id} connected={s.telegramConnected} />
+            {s.telegramConnected ? (
+              <>
+                <TelegramLinkButton supplierId={s.id} connected />
+              </>
+            ) : (
+              <div role="status" className="mt-2 flex flex-col gap-3 rounded-xl bg-warning-bg p-4 text-sm">
+                <p className="text-warning">
+                  <strong>Telegram belum terhubung.</strong> Supplio tidak bisa memulai chat lebih dulu. Kirim tautan
+                  onboarding ke supplier; supplier perlu membukanya dan menyetujui koneksi.
+                </p>
+                <TelegramLinkButton supplierId={s.id} connected={false} />
+              </div>
+            )}
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Produk</TableHead>
-                    <TableHead className="text-right">Harga referensi</TableHead>
-                    <TableHead className="text-right">MOQ</TableHead>
-                    <TableHead className="text-right">Isi kemasan</TableHead>
-                    <TableHead className="text-right">Stok referensi</TableHead>
-                    <TableHead className="text-right">Lead time</TableHead>
-                    <TableHead className="text-right">Ongkir referensi</TableHead>
-                    <TableHead>Peran</TableHead>
-                    <TableHead />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {s.products.length === 0 ? (
+          <CardContent className="flex flex-col gap-3">
+            <details open={suppliers.length <= 2} className="rounded-md border">
+              <summary className="cursor-pointer p-3 text-sm font-medium">Produk yang disuplai ({s.products.length})</summary>
+              <div className="border-t">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center text-muted-foreground">
-                        Belum ada produk. Tambahkan lewat “Tambah atau ubah produk supplier” di bawah.
-                      </TableCell>
+                      <TableHead>Produk</TableHead>
+                      <TableHead className="text-right">Harga referensi</TableHead>
+                      <TableHead className="text-right">MOQ</TableHead>
+                      <TableHead className="text-right">Isi kemasan</TableHead>
+                      <TableHead className="text-right">Stok referensi</TableHead>
+                      <TableHead className="text-right">Lead time</TableHead>
+                      <TableHead className="text-right">Ongkir referensi</TableHead>
+                      <TableHead>Peran</TableHead>
+                      <TableHead />
                     </TableRow>
-                  ) : null}
-                  {s.products.map((p) => (
-                    <TableRow key={p.productId}>
-                      <TableCell className="font-medium">
-                        {p.productName} <span className="text-muted-foreground">({p.unit})</span>
-                      </TableCell>
-                      <TableCell className="text-right">{formatRupiah(p.referenceUnitPrice)}</TableCell>
-                      <TableCell className="text-right">{formatQty(p.minimumOrderQuantity)}</TableCell>
-                      <TableCell className="text-right">{formatQty(p.packSize)}</TableCell>
-                      <TableCell className="text-right">{formatQty(p.referenceAvailableQuantity)}</TableCell>
-                      <TableCell className="text-right">{p.referenceLeadTimeDays} hari</TableCell>
-                      <TableCell className="text-right">
-                        {p.referenceShippingFee === null ? "-" : formatRupiah(p.referenceShippingFee)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={p.isPrimary ? "default" : "outline"}>{p.isPrimary ? "Utama" : "Alternatif"}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <RemoveProductButton supplierId={s.id} productId={p.productId} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {s.products.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center text-muted-foreground">
+                          Belum ada produk. Tambahkan lewat “Tambah atau ubah produk supplier” di bawah.
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                    {s.products.map((p) => (
+                      <TableRow key={p.productId}>
+                        <TableCell className="font-medium">
+                          {p.productName} <span className="text-muted-foreground">({p.unit})</span>
+                        </TableCell>
+                        <TableCell className="text-right">{formatRupiah(p.referenceUnitPrice)}</TableCell>
+                        <TableCell className="text-right">{formatQty(p.minimumOrderQuantity)}</TableCell>
+                        <TableCell className="text-right">{formatQty(p.packSize)}</TableCell>
+                        <TableCell className="text-right">{formatQty(p.referenceAvailableQuantity)}</TableCell>
+                        <TableCell className="text-right">{p.referenceLeadTimeDays} hari</TableCell>
+                        <TableCell className="text-right">
+                          {p.referenceShippingFee === null ? "-" : formatRupiah(p.referenceShippingFee)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={p.isPrimary ? "default" : "outline"}>{p.isPrimary ? "Utama" : "Alternatif"}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <RemoveProductButton supplierId={s.id} productId={p.productId} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </details>
             <details className="rounded-md border p-3">
               <summary className="cursor-pointer text-sm font-medium">Tambah atau ubah produk supplier</summary>
               <div className="pt-4">
@@ -118,7 +128,7 @@ export default async function SuppliersPage() {
         </Card>
       ))}
 
-      <Card>
+      <Card id="tambah-supplier" className="scroll-mt-24">
         <CardHeader>
           <CardTitle>Tambah supplier</CardTitle>
         </CardHeader>

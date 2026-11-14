@@ -39,7 +39,7 @@ export function TelegramLinkButton({ supplierId, connected }: { supplierId: stri
   return (
     <div className="flex flex-col gap-2">
       <div>
-        <Button type="button" variant="outline" size="sm" disabled={pending} onClick={generate}>
+        <Button type="button" variant={connected ? "outline" : "default"} size="sm" disabled={pending} onClick={generate}>
           {connected ? "Buat tautan baru" : "Hubungkan Telegram"}
         </Button>
       </div>
@@ -51,8 +51,7 @@ export function TelegramLinkButton({ supplierId, connected }: { supplierId: stri
       {link ? (
         <div className="flex max-w-xl flex-col gap-1.5 rounded-md border p-3">
           <p className="text-sm text-muted-foreground">
-            Kirim tautan ini ke supplier. Tautan hanya bisa dipakai sekali dan berlaku sampai {formatDateTime(link.expiresAt)}.
-            Supplier membuka tautan, menekan Start, lalu menyetujui koneksi.
+            Berlaku sampai {formatDateTime(link.expiresAt)}.
           </p>
           <div className="flex gap-2">
             <Input readOnly value={link.url} onFocus={(e) => e.currentTarget.select()} aria-label="Tautan onboarding Telegram" />

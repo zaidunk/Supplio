@@ -14,6 +14,11 @@ export function BusinessSettingsForm(props: { defaultRestockBudget: number; resp
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [budget, setBudget] = useState(String(props.defaultRestockBudget));
+
+  const budgetNumber = Number(budget);
+  const budgetValid = budget.trim() !== "" && Number.isFinite(budgetNumber) && budgetNumber >= 0;
+  const budgetZero = budgetValid && budgetNumber === 0;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,7 +30,7 @@ export function BusinessSettingsForm(props: { defaultRestockBudget: number; resp
         defaultRestockBudget: Number(f.get("defaultRestockBudget")),
         responseTimeoutMinutes: Number(f.get("responseTimeoutMinutes")),
       });
-      setInfo(describeTrigger(result.trigger) ?? "Tersimpan. Budget baru berlaku untuk request berikutnya.");
+      setInfo(describeTrigger(result.trigger) ?? "Tersimpan.");
       startTransition(() => router.refresh());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan.");
@@ -36,11 +41,22 @@ export function BusinessSettingsForm(props: { defaultRestockBudget: number; resp
     <form onSubmit={onSubmit} className="grid max-w-xl gap-4">
       <Field
         label="Restock Budget default (Rp)"
-        hint="Batas total satu procurement request, termasuk ongkir. Disalin ke setiap request baru; request yang sudah berjalan tidak berubah. Isi 0 jika belum diatur; restock belum bisa diproses."
       >
-        <Input name="defaultRestockBudget" type="number" min={0} defaultValue={props.defaultRestockBudget} required />
+        <Input
+          name="defaultRestockBudget"
+          type="number"
+          min={0}
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          required
+        />
       </Field>
-      <Field label="Batas tunggu balasan supplier (menit)" hint="Setelah batas ini, supplier dianggap tidak membalas">
+      {budgetZero ? (
+        <p role="status" className="-mt-2 rounded-xl bg-warning-bg px-3 py-2 text-sm text-warning">
+          Budget 0 berarti restock yang terdeteksi tidak akan diproses. Isi nominal lebih dari 0 agar permintaan penawaran bisa berjalan.
+        </p>
+      ) : null}
+      <Field label="Batas tunggu balasan supplier (menit)">
         <Input name="responseTimeoutMinutes" type="number" min={1} max={1440} defaultValue={props.responseTimeoutMinutes} required />
       </Field>
       <FormMessage error={error} info={info} />

@@ -28,7 +28,9 @@ export const SESSION_STATUS_LABEL: Record<NegotiationStatus, string> = {
   TIMED_OUT: "Tidak membalas / tidak terjangkau",
 };
 
-export const PO_STATUS_LABEL: Record<"CREATED" | "SENT" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED", string> = {
+export type PoStatus = "CREATED" | "SENT" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED";
+
+export const PO_STATUS_LABEL: Record<PoStatus, string> = {
   CREATED: "Dibuat (konfirmasi belum terkirim)",
   SENT: "Terkirim ke supplier",
   PARTIALLY_RECEIVED: "Diterima sebagian",

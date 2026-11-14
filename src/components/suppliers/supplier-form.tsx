@@ -114,10 +114,10 @@ export function SupplierForm({ products, supplierId }: { products: ProductOption
           <Field label="Harga referensi per satuan dasar (Rp)">
             <Input type="number" min={1} value={r.referenceUnitPrice} onChange={(e) => update(r.key, { referenceUnitPrice: e.target.value })} required />
           </Field>
-          <Field label="MOQ" hint="Jumlah pesanan minimum">
+          <Field label="MOQ">
             <Input inputMode="decimal" value={r.minimumOrderQuantity} onChange={(e) => update(r.key, { minimumOrderQuantity: e.target.value })} />
           </Field>
-          <Field label="Isi kemasan (kelipatan)" hint="Kosongkan jika dijual per satuan">
+          <Field label="Isi kemasan (kelipatan)">
             <Input inputMode="decimal" value={r.packSize} onChange={(e) => update(r.key, { packSize: e.target.value })} />
           </Field>
           <Field label="Stok referensi">
