@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronDown, CircleCheck, PackageCheck, PackageOpen, Send, SlidersHorizontal } from "lucide-react";
 import "./landing-page.css";
 
 const steps = [
@@ -31,36 +31,18 @@ function Header() {
   </div></header>;
 }
 
-const heroTraces = [
-  "M-80 90H320Q340 90 340 110V170Q340 190 360 190H720",
-  "M-80 255H165Q190 255 190 280V340Q190 365 215 365H760",
-  "M-80 480H360Q380 480 380 455V415Q380 390 405 390H760",
-  "M-80 710H260Q285 710 285 685V630Q285 605 310 605H760",
-  "M140 -50V110Q140 130 165 130H500Q525 130 525 155V265Q525 290 550 290H760",
-  "M420 850V745Q420 720 445 720H555Q580 720 580 695V560Q580 535 605 535H760",
-  "M600 -50V75Q600 100 625 100H760",
-  "M650 850V750Q650 725 675 725H760",
-];
-
-function HeroCircuit() {
-  return <svg className="lp-hero-circuit" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    {[0, 1].map((side) => <g key={side} transform={side ? "translate(1440 0) scale(-1 1)" : undefined}>
-      {heroTraces.map((path, index) => <g key={path}>
-        <path className="lp-hero-trace" d={path} />
-        <path className="lp-hero-pulse" d={path} pathLength={100} style={{ animationDelay: `-${index * 1.4 + side * 2}s` }} />
-      </g>)}
-    </g>)}
-  </svg>;
-}
-
 function Hero() {
-  return <section className="lp-hero" id="beranda"><HeroCircuit /><div className="lp-wrap lp-hero-inner">
+  return <section className="lp-hero" id="beranda"><div className="lp-wrap lp-hero-inner">
     <div className="lp-hero-copy">
       <h1>Restock UMKM, keputusan tetap <span>Anda.</span></h1>
       <p>Supplio memantau stok, meminta penawaran supplier manusia lewat Telegram, lalu menyiapkan pilihan pembelian. Anda yang menyetujui.</p>
       <div className="lp-hero-actions"><ActionLink /><a className="lp-text-link" href="#cara-kerja">Lihat cara kerja <ArrowRight size={18} aria-hidden="true" /></a></div>
-      <p className="lp-hero-assurance"><ShieldCheck size={19} aria-hidden="true" /> AI tidak dapat menyetujui pembelian atas nama Anda.</p>
     </div>
+    <figure className="lp-hero-art">
+      <Image className="lp-hero-scene" src="/images/hero-restock-world.png" alt="Ilustrasi warung UMKM dengan stok beras, minyak, dan barang yang baru diantar" width={1536} height={1024} sizes="(max-width: 767px) 100vw, (max-width: 1200px) 55vw, 720px" priority />
+      <Image className="lp-hero-plane" src="/images/hero-paper-plane.png" alt="" width={1536} height={1024} sizes="150px" aria-hidden="true" />
+      <Image className="lp-hero-parcel" src="/images/hero-floating-parcel.png" alt="" width={1312} height={1199} sizes="150px" aria-hidden="true" unoptimized />
+    </figure>
   </div></section>;
 }
 
@@ -94,15 +76,15 @@ function Capabilities() {
     <div className="lp-capability-grid">
       <article className="lp-capability lp-capability-stock">
         <div className="lp-capability-copy"><h3>Ketahui barang yang perlu diisi.</h3><p>Inventory memperlihatkan Current Stock, Incoming Quantity, dan kebutuhan restock dalam satu konteks. Anda juga dapat meminta penawaran lebih awal secara manual.</p></div>
-        <figure className="lp-capability-visual"><Image src="/images/capability-stock.png" alt="Beras, minyak, dan kemasan dalam baki stok dengan satu ruang kosong" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/inventory-shelves-pexels.webp" alt="Rak barang kebutuhan sehari-hari di sebuah toko kecil" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/cozy-corner-of-an-asian-grocery-store-interior-34357798/" target="_blank" rel="noopener noreferrer">Paolo Sanchez / Pexels</a></figcaption></figure>
       </article>
       <article className="lp-capability lp-capability-telegram">
         <div className="lp-capability-copy"><h3>Penawaran datang dari supplier manusia.</h3><p>Bot Telegram Supplio menyebut dirinya AI, meminta harga dan ketentuan kepada supplier manusia, lalu menyimpan balasannya sebagai Quotation.</p></div>
-        <figure className="lp-capability-visual"><Image src="/images/capability-supplier.png" alt="Supplier menulis penawaran untuk barang yang akan diisi ulang" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/supplier-phone-pexels.webp" alt="Pelaku usaha berbicara lewat telepon sambil menyiapkan pesanan" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-woman-talking-on-her-phone-while-boxing-pastry-8902305/" target="_blank" rel="noopener noreferrer">ANTONI SHKRABA production / Pexels</a></figcaption></figure>
       </article>
       <article className="lp-capability lp-capability-choice">
         <div className="lp-capability-copy"><h3>Bandingkan biaya bersama batas pembelian.</h3><p>Rekomendasi membandingkan harga barang dan ongkir terhadap Restock Budget. Jika belum ada pilihan yang memenuhi batas, alasannya tetap terlihat.</p></div>
-        <figure className="lp-capability-visual"><Image src="/images/capability-budget.png" alt="Dua pilihan barang dan penawaran dibandingkan pada neraca" width={1536} height={1024} sizes="(max-width: 767px) 100vw, 560px" /></figure>
+        <figure className="lp-capability-visual"><Image src="/landing/assets/photos/budget-calculator-pexels.webp" alt="Tangan menghitung biaya dengan kalkulator dan dokumen di meja" width={1400} height={1000} sizes="(max-width: 767px) 100vw, 560px" loading="lazy" /><figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-person-using-calculator-7654591/" target="_blank" rel="noopener noreferrer">Pavel Danilyuk / Pexels</a></figcaption></figure>
       </article>
     </div>
   </div></section>;
@@ -120,16 +102,18 @@ function OwnerControl() {
             Supplio dapat meminta penawaran dan melakukan paling banyak satu counter-offer per supplier. Sistem tidak memesan atau menjanjikan pembayaran atas nama Anda.
           </p>
         </div>
-        <div className="lp-owner-visual">
+        <figure className="lp-owner-visual">
           <Image
-            src="/images/owner-decision-3d-v2.png"
-            alt="Dua pilihan barang restock dan token persetujuan yang masih dipegang pemilik"
-            width={1536}
-            height={1024}
-            sizes="(max-width: 767px) 100vw, 680px"
+            src="/landing/assets/photos/owner-review-pexels.webp"
+            alt="Seorang perempuan memeriksa dokumen sebelum mengambil keputusan"
+            width={1000}
+            height={1000}
+            sizes="(max-width: 767px) 100vw, 600px"
             className="lp-owner-image"
+            loading="lazy"
           />
-        </div>
+          <figcaption>Foto ilustratif: <a href="https://www.pexels.com/photo/a-woman-reading-a-document-6963840/" target="_blank" rel="noopener noreferrer">Mikhail Nilov / Pexels</a></figcaption>
+        </figure>
       </div>
     </section>
   );
@@ -144,5 +128,27 @@ function Footer() {
 }
 
 export default function LandingExperience() {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let cancelled = false;
+    let dispose: (() => void) | undefined;
+    async function start() {
+      const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] = await Promise.all([import("lenis"), import("gsap"), import("gsap/ScrollTrigger")]);
+      if (cancelled) return;
+      gsap.registerPlugin(ScrollTrigger);
+      const lenis = new Lenis({ lerp: 0.085, smoothWheel: true, anchors: true });
+      lenis.on("scroll", ScrollTrigger.update);
+      const tick = (time: number) => lenis.raf(time * 1000);
+      gsap.ticker.add(tick);
+      gsap.ticker.lagSmoothing(0);
+      const context = gsap.context(() => {
+        gsap.fromTo(".lp-owner-image", { y: 36, opacity: 0.65 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out", scrollTrigger: { trigger: ".lp-owner", start: "top 75%", once: true } });
+      });
+      ScrollTrigger.refresh();
+      dispose = () => { context.revert(); gsap.ticker.remove(tick); lenis.destroy(); };
+    }
+    void start();
+    return () => { cancelled = true; dispose?.(); };
+  }, []);
   return <div className="supplio-landing-root"><a className="lp-skip" href="#konten">Lewati ke konten utama</a><Header /><main id="konten"><Hero /><Workflow /><Capabilities /><OwnerControl /><TrustAndQuestions /></main><Footer /></div>;
 }
